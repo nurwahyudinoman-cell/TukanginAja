@@ -1,2 +1,2 @@
-# StudyHub
-Aplikasi Android all-in-one untuk pelajar
+# TukanginAja
+Aplikasi Aplikasi Jasa Lokal Cepat & Dekat
