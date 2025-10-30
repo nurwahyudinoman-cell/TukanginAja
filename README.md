@@ -1,2 +1,2 @@
 # TukanginAja
-Aplikasi Aplikasi Jasa Lokal Cepat & Dekat
+Project kolaborasi berbasis Cursor AI + GitHub
