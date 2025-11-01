@@ -1,213 +1,309 @@
-# Tukangin — Local Daily Service Platform
+# TukanginAja - Local Daily Service Platform
 
-A modern Android application built with Jetpack Compose, Firebase, and MVVM architecture for connecting users with local service providers.
+A modern Android application built with Jetpack Compose, Firebase, and MVVM architecture for connecting users with local service providers (tukang) for daily services.
 
 ## 🚀 Features
 
 - **Authentication**: Email/Password login and registration with Firebase Auth
-- **Home Screen**: Google Maps integration for location-based services
-- **Orders**: Track and manage service orders
-- **Chat**: Real-time messaging with service providers
-- **Profile**: User profile management
-- **More**: Additional settings and features
+- **Location Services**: Google Maps integration for real-time location tracking
+- **Service Requests**: Create and manage service orders
+- **Real-time Chat**: Messaging with service providers
+- **Route Tracking**: Track service provider routes in real-time
+- **Profile Management**: User profile and preferences
 
-## 🛠 Tech Stack
+## 📋 Prerequisites
 
-- **Language**: Kotlin
-- **UI Framework**: Jetpack Compose with Material 3
-- **Architecture**: MVVM + Repository Pattern
-- **Dependency Injection**: Hilt (Dagger)
-- **Backend**: Firebase (Auth, Firestore, Storage, Messaging, Crashlytics)
-- **Maps**: Google Maps SDK for Android
-- **Navigation**: Navigation Compose
-- **Image Loading**: Coil
-- **Logging**: Timber
-- **Coroutines**: Kotlin Coroutines
+Before you begin, ensure you have the following installed:
 
-## 📋 Requirements
+- **Node.js** (v16 or higher) - For Firebase CLI and potential frontend tools
+- **pnpm/yarn/npm** - Package manager (for Firebase CLI and any Node-based tools)
+- **Java JDK** (17 or higher) - Required for Android development
+- **Gradle** (8.13+) - Build tool (included via wrapper)
+- **Firebase CLI** - For Firebase emulators and deployment
+- **Android Studio** (Hedgehog 2023.1.1 or later) - Recommended IDE
+- **Android SDK** (API 26 minimum, API 34 target)
 
-- Android Studio Hedgehog (2023.1.1) or later
-- JDK 11 or higher
-- Android SDK 26 (minimum)
-- Google Firebase account
-- Google Maps API Key
-
-## 🔧 Setup Instructions
+## 🔧 Quickstart
 
 ### 1. Clone the Repository
 
 ```bash
-git clone <repository-url>
+git clone https://github.com/nurwahyudinoman-cell/TukanginAja.git
 cd TukanginAja
 ```
 
-### 2. Firebase Configuration
+### 2. Environment Setup
 
-1. Go to [Firebase Console](https://console.firebase.google.com/)
-2. Create a new project or select an existing one
-3. Add an Android app with package name: `com.tukanginAja.solusi`
-4. Download `google-services.json`
-5. Place it in `app/google-services.json` (replace the placeholder file)
+Create environment configuration files:
 
-### 3. Google Maps API Key
+```bash
+# Copy example environment file (if exists)
+cp .env.example .env.local
 
-1. Go to [Google Cloud Console](https://console.cloud.google.com/)
-2. Enable Google Maps SDK for Android
-3. Create an API key
-4. Add the API key to `local.properties`:
-
-```properties
+# Or create local.properties for Android-specific config
+# Add the following to local.properties:
 MAPS_API_KEY=your_google_maps_api_key_here
 ```
 
-### 4. Build the Project
+**Required Environment Variables:**
 
+- `MAPS_API_KEY` - Google Maps API key (add to `local.properties`)
+- Firebase configuration via `google-services.json` (download from Firebase Console)
+
+### 3. Install Dependencies & Build
+
+#### Frontend (if applicable):
+```bash
+# If there's a frontend directory with package.json
+npm install
+# or
+yarn install
+# or
+pnpm install
+```
+
+#### Backend (Android):
 ```bash
 ./gradlew clean build
 ```
 
-Or use Android Studio:
-- Open the project in Android Studio
-- Wait for Gradle sync to complete
-- Click "Run" or press `Shift+F10`
+### 4. Firebase Emulators (if applicable)
 
-## 📁 Project Structure
+For local development with Firebase emulators:
 
-```
-app/
-├── src/
-│   └── main/
-│       ├── java/com/tukanginAja/solusi/
-│       │   ├── data/
-│       │   │   ├── model/          # Data models
-│       │   │   ├── remote/         # Remote data sources (Firebase)
-│       │   │   └── repository/     # Repository implementations
-│       │   ├── domain/
-│       │   │   └── usecase/        # Business logic use cases
-│       │   ├── ui/
-│       │   │   ├── screens/        # Screen composables
-│       │   │   │   ├── auth/
-│       │   │   │   ├── home/
-│       │   │   │   ├── orders/
-│       │   │   │   ├── chat/
-│       │   │   │   ├── profile/
-│       │   │   │   └── more/
-│       │   │   ├── components/     # Reusable UI components
-│       │   │   ├── navigation/     # Navigation setup
-│       │   │   └── theme/          # App theme and colors
-│       │   ├── di/                 # Dependency injection modules
-│       │   └── utils/              # Utility classes
-│       ├── res/                     # Resources
-│       └── AndroidManifest.xml
-└── google-services.json            # Firebase config (replace with your file)
-```
-
-## 🏗 Architecture
-
-The app follows **MVVM (Model-View-ViewModel)** architecture with Repository pattern:
-
-- **Data Layer**: Remote data sources and repositories
-- **Domain Layer**: Use cases containing business logic
-- **Presentation Layer**: UI screens (Compose) and ViewModels
-- **DI Layer**: Hilt modules for dependency injection
-
-## 🎨 Brand Colors
-
-- **Primary**: `#FF9800` (Orange)
-- **Secondary**: `#1565C0` (Blue)
-
-## 🔐 Authentication
-
-The app uses Firebase Authentication with:
-- Email/Password authentication (implemented)
-- Google Sign-In (stubbed for future implementation)
-
-### Sample Credentials
-
-To test the app, you'll need to create users via:
-1. Firebase Console → Authentication → Users
-2. Or use the Register screen in the app
-
-## 📱 Screens
-
-### 1. Splash Screen
-- Shows app branding
-- Checks authentication status
-- Navigates to Login or Home based on auth state
-
-### 2. Authentication Screens
-- **Login**: Email/password login
-- **Register**: Create new account
-
-### 3. Main Screens (Bottom Navigation)
-- **Home**: Placeholder for Google Maps integration
-- **Orders**: Order management (placeholder)
-- **Chat**: Messaging interface (placeholder)
-- **Profile**: User profile and sign out
-- **More**: Additional features (placeholder)
-
-## 🧪 Testing
-
-Run unit tests:
 ```bash
+firebase emulators:start
+```
+
+**Note:** Ensure `firebase.json` is configured with emulator settings.
+
+### 5. Run Tests & Lint
+
+#### Run Tests:
+```bash
+# Unit tests
 ./gradlew test
-```
 
-Run instrumentation tests:
-```bash
+# Instrumented tests (requires emulator/device)
 ./gradlew connectedAndroidTest
 ```
 
-## 📦 Build Variants
+#### Lint:
+```bash
+# Android Lint
+./gradlew lint
 
-- **Debug**: Development build with debug signing
-- **Release**: Production build (configure signing config)
+# For Node.js projects (if applicable)
+npm run lint
+# or
+yarn lint
+```
 
-## 🔄 CI/CD
+## 🏗️ Project Structure
 
-GitHub Actions workflow is configured for:
-- Building the project on push to `main` branch
-- Running tests (if configured)
+```
+TukanginAja/
+├── app/                          # Android application module
+│   ├── src/
+│   │   ├── main/                 # Main source code
+│   │   │   ├── java/com/tukanginAja/solusi/
+│   │   │   │   ├── data/         # Data layer (models, repositories)
+│   │   │   │   ├── ui/           # UI layer (screens, components)
+│   │   │   │   ├── di/           # Dependency injection
+│   │   │   │   └── utils/        # Utilities
+│   │   │   ├── res/              # Resources (layouts, drawables)
+│   │   │   └── AndroidManifest.xml
+│   │   ├── test/                  # Unit tests
+│   │   └── androidTest/           # Instrumented tests
+│   └── build.gradle.kts
+├── docs/                          # Documentation
+│   ├── system-audit.md
+│   └── ...
+├── logs/                          # Build and fix logs
+├── .cursorrules/                   # Cursor AI rules
+│   └── auto_repair_loop.md
+├── build.gradle.kts               # Root build configuration
+├── gradle/                        # Gradle wrapper and version catalog
+└── README.md
+```
 
-See `.github/workflows/android.yml` for details.
+## 🔐 Firebase Configuration
 
-## 📝 Dependencies
+1. Go to [Firebase Console](https://console.firebase.google.com/)
+2. Create or select your project
+3. Add Android app with package name: `com.tukanginAja.solusi`
+4. Download `google-services.json`
+5. Place it in `app/google-services.json`
 
-Key dependencies are managed in `gradle/libs.versions.toml`:
+### Required Firebase Services:
+- **Authentication** - User auth
+- **Firestore** - Real-time database
+- **Storage** - File storage
+- **Cloud Messaging (FCM)** - Push notifications
+- **Cloud Functions** - Backend functions
+- **Crashlytics** - Crash reporting (release builds)
+- **Analytics** - User analytics
 
-- Jetpack Compose BOM: 2024.09.00
-- Hilt: 2.48
-- Firebase BOM: 32.7.0
-- Navigation Compose: 2.7.4
-- Google Maps: 5.0.0
-- Coroutines: 1.7.3
+## 🗺️ Google Maps Setup
+
+1. Go to [Google Cloud Console](https://console.cloud.google.com/)
+2. Enable **Maps SDK for Android**
+3. Enable **Places API** and **Geocoding API**
+4. Create API key with Android app restrictions
+5. Add SHA-1 fingerprint and package name restrictions
+6. Add API key to `local.properties`:
+
+```properties
+MAPS_API_KEY=your_api_key_here
+```
+
+## 🧪 Testing
+
+### Run All Tests:
+```bash
+./gradlew test connectedAndroidTest
+```
+
+### Test Coverage:
+- **Unit Tests**: JUnit 4.13.2
+- **Instrumented Tests**: AndroidX Test (JUnit 1.5.1, Espresso 3.1.5)
+- **Compose Tests**: Compose UI Test
+
+### Current Test Status:
+- ✅ All tests passing
+- ⚠️ Coverage can be improved (currently example tests only)
+
+## 🔄 Auto Repair Loop via Cursor
+
+Cursor AI can automatically fix build errors using the Auto Repair Loop policy.
+
+### How to Use:
+
+1. **Trigger Auto Repair:**
+   - When build fails, Cursor AI will automatically:
+     - Run `./gradlew clean build`
+     - Analyze error logs
+     - Apply fixes automatically
+     - Rebuild until success or max iterations
+
+2. **Manual Trigger:**
+   - Ask Cursor AI: "Fix build errors using auto repair loop"
+   - Or: "Run auto repair loop for current build failures"
+
+3. **View Fix Logs:**
+   - Check `/logs/build-fix-report.txt` for all fixes applied
+   - Each fix includes timestamp, files changed, and explanation
+
+### Policy Location:
+See `.cursorrules/auto_repair_loop.md` for complete policy details.
+
+**Note:** Cursor AI will never modify database schemas or critical configurations without flagging for Senior Dev approval.
+
+## 👥 Contributing
+
+We welcome contributions! Please refer to **[COLLAB_GUIDE.md](./COLLAB_GUIDE.md)** for detailed collaboration guidelines between Senior Developers and Cursor AI.
+
+### Quick Contribution Guidelines:
+
+1. **Follow Architecture:**
+   - MVVM + Repository Pattern
+   - Hilt for Dependency Injection
+   - Kotlin Coroutines + Flow for async operations
+
+2. **Code Style:**
+   - Follow official Kotlin code style
+   - Use Android Lint for code quality
+   - Write tests for new features
+
+3. **Commit Messages:**
+   - Use conventional commits: `type: description`
+   - Types: `feat`, `fix`, `docs`, `refactor`, `test`, `ci`
+
+4. **Pull Requests:**
+   - Create feature branch from `main`
+   - Ensure all tests pass
+   - Request review from Senior Developer
+
+## 📚 Documentation
+
+- **[COLLAB_GUIDE.md](./COLLAB_GUIDE.md)** - Collaboration guide for Senior Dev x Cursor AI
+- **[docs/system-audit.md](./docs/system-audit.md)** - System audit report
+- **[.cursorrules/auto_repair_loop.md](./.cursorrules/auto_repair_loop.md)** - Auto repair policy
+
+## 🛠️ Tech Stack
+
+### Frontend/UI:
+- **Kotlin** 2.0.21
+- **Jetpack Compose** (BOM 2024.09.00)
+- **Material 3**
+- **Navigation Compose** 2.7.4
+
+### Backend/Services:
+- **Firebase BOM** 32.7.0
+  - Auth, Firestore, Storage, Messaging
+  - Functions, Crashlytics, Analytics
+- **Google Maps SDK** 5.0.0
+- **Google Play Services** (Maps, Location)
+
+### Architecture:
+- **MVVM** + Repository Pattern
+- **Hilt (Dagger)** 2.48 - Dependency Injection
+- **Kotlin Coroutines** 1.7.3 + Flow
+- **Timber** 5.1.1 - Logging
+
+### Build Tools:
+- **Gradle** 8.13
+- **Android Gradle Plugin** 8.13.0
+- **Kotlin** 2.0.21
+
+## 🚀 Build Variants
+
+- **Debug**: Development build, debuggable, no minification
+- **Release**: Production build, minified, ProGuard enabled, signed
+
+### Release Build:
+```bash
+./gradlew assembleRelease
+```
+
+**Note:** Requires `keystore.properties` configured for signing.
 
 ## 🐛 Troubleshooting
 
-### Build Errors
+### Common Issues:
 
-1. **Google Services JSON missing**: Ensure `app/google-services.json` is present and valid
-2. **Maps API Key**: Check `local.properties` has `MAPS_API_KEY` set
-3. **Gradle sync fails**: Try `./gradlew clean` and invalidate caches in Android Studio
+1. **Build Fails:**
+   - Run: `./gradlew clean build`
+   - Check `/logs/build-fix-report.txt` if using Auto Repair Loop
+   - Verify `google-services.json` exists
 
-### Firebase Issues
+2. **Maps Not Loading:**
+   - Verify `MAPS_API_KEY` in `local.properties`
+   - Check API key restrictions in Google Cloud Console
+   - Ensure SHA-1 fingerprint is added to API key
 
-1. Ensure Firebase project is properly configured
-2. Check that Authentication is enabled in Firebase Console
-3. Verify package name matches in Firebase and AndroidManifest
+3. **Firebase Not Initializing:**
+   - Verify `google-services.json` is in `app/` directory
+   - Check Firebase project configuration
+   - Ensure package name matches: `com.tukanginAja.solusi`
+
+4. **Tests Failing:**
+   - Run: `./gradlew clean test`
+   - Check test logs for specific failures
+   - Verify test dependencies are up to date
+
+## 📞 Support
+
+- **Issues:** Open an issue on [GitHub](https://github.com/nurwahyudinoman-cell/TukanginAja/issues)
+- **Documentation:** See `/docs` directory
+- **Collaboration Guide:** See [COLLAB_GUIDE.md](./COLLAB_GUIDE.md)
 
 ## 📄 License
 
 [Add your license here]
 
-## 👥 Contributors
-
-[Add contributors here]
-
-## 📞 Support
-
-For issues and questions, please open an issue on GitHub.
-
 ---
 
-**Note**: This is an initial implementation with placeholder screens. Additional features and full implementations will be added in future updates.
+**Project Status:** ✅ Active Development  
+**Version:** 1.0.22 (versionCode 22)  
+**Last Updated:** November 2025
