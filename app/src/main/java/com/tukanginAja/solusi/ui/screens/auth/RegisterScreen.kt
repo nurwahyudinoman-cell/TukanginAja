@@ -18,6 +18,7 @@ fun RegisterScreen(
     var email by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
     var confirmPassword by remember { mutableStateOf("") }
+    var passwordMismatchError by remember { mutableStateOf(false) }
     
     val uiState by viewModel.uiState.collectAsState()
     
@@ -72,14 +73,21 @@ fun RegisterScreen(
         
         OutlinedTextField(
             value = confirmPassword,
-            onValueChange = { confirmPassword = it },
+            onValueChange = { 
+                confirmPassword = it
+                passwordMismatchError = false // Clear error when user types
+            },
             label = { Text("Confirm Password") },
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(bottom = 24.dp),
+                .padding(bottom = 8.dp),
             singleLine = true,
             visualTransformation = PasswordVisualTransformation(),
-            enabled = uiState !is AuthUiState.Loading
+            enabled = uiState !is AuthUiState.Loading,
+            isError = passwordMismatchError,
+            supportingText = if (passwordMismatchError) {
+                { Text("Passwords do not match", color = MaterialTheme.colorScheme.error) }
+            } else null
         )
         
         if (uiState is AuthUiState.Error) {
@@ -88,14 +96,27 @@ fun RegisterScreen(
                 color = MaterialTheme.colorScheme.error,
                 modifier = Modifier.padding(bottom = 16.dp)
             )
+        } else if (passwordMismatchError) {
+            Text(
+                text = "Passwords do not match",
+                color = MaterialTheme.colorScheme.error,
+                modifier = Modifier.padding(bottom = 16.dp)
+            )
         }
         
         Button(
             onClick = {
-                if (password == confirmPassword) {
-                    viewModel.register(email, password)
-                } else {
-                    // Show error - passwords don't match
+                when {
+                    password != confirmPassword -> {
+                        passwordMismatchError = true
+                    }
+                    confirmPassword.isBlank() -> {
+                        passwordMismatchError = true
+                    }
+                    else -> {
+                        passwordMismatchError = false
+                        viewModel.register(email, password)
+                    }
                 }
             },
             modifier = Modifier

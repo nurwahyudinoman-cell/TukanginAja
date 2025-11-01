@@ -5,5 +5,7 @@ plugins {
     alias(libs.plugins.kotlin.compose) apply false
     alias(libs.plugins.hilt) apply false
     alias(libs.plugins.google.services) apply false
+    // TAHAP 17: Firebase Crashlytics plugin
+    id("com.google.firebase.crashlytics") version "2.9.9" apply false
     id("org.jetbrains.kotlin.kapt") version "2.0.21" apply false
 }

@@ -14,6 +14,7 @@ hilt = "2.48"
 hiltNavigationCompose = "1.1.0"
 firebaseBom = "32.7.0"
 googleServices = "4.4.0"
+crashlyticsPlugin = "2.9.9"
 mapsCompose = "5.0.0"
 mapsComposeUtils = "5.0.0"
 mapsKtx = "4.3.1"
@@ -48,6 +49,7 @@ firebase-firestore = { group = "com.google.firebase", name = "firebase-firestore
 firebase-storage = { group = "com.google.firebase", name = "firebase-storage-ktx" }
 firebase-messaging = { group = "com.google.firebase", name = "firebase-messaging-ktx" }
 firebase-crashlytics = { group = "com.google.firebase", name = "firebase-crashlytics-ktx" }
+firebase-analytics = { group = "com.google.firebase", name = "firebase-analytics-ktx" }
 maps-compose = { group = "com.google.maps.android", name = "maps-compose", version.ref = "mapsCompose" }
 maps-compose-utils = { group = "com.google.maps.android", name = "maps-compose-utils", version.ref = "mapsComposeUtils" }
 maps-ktx = { group = "com.google.maps.android", name = "maps-ktx", version.ref = "mapsKtx" }
@@ -63,4 +65,5 @@ kotlin-compose = { id = "org.jetbrains.kotlin.plugin.compose", version.ref = "ko
 kotlin-kapt = { id = "org.jetbrains.kotlin.kapt", version.ref = "kotlin" }
 hilt = { id = "com.google.dagger.hilt.android", version.ref = "hilt" }
 google-services = { id = "com.google.gms.google-services", version.ref = "googleServices" }
+firebase-crashlytics = { id = "com.google.firebase.crashlytics", version.ref = "crashlyticsPlugin" }
 

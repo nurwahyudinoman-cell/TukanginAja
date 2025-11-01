@@ -1,0 +1,348 @@
+================================================================================
+TUKANGINAJA - INTERNAL TESTING FEEDBACK REPORT
+TAHAP 20: SYSTEM NOTIFICATION & BACKGROUND MESSAGING OPTIMIZATION
+================================================================================
+
+Date: $(date)
+Build Version: 1.0
+Build Target: Android 14 (API 34)
+Package: com.tukanginAja.solusi
+Firebase Project: tukanginaja-b1s4
+
+================================================================================
+1. BUILD VERIFICATION
+================================================================================
+
+✅ BUILD STATUS: SUCCESS
+Build Command: ./gradlew clean && ./gradlew assembleRelease
+Build Time: ~2m 48s
+Output APK: app/build/outputs/apk/release/app-release-unsigned.apk
+APK Size: 6.4 MB
+
+Warnings:
+- Some deprecated API usage (Icons.Filled.List, Icons.Filled.Send, menuAnchor)
+- NDK source.properties warning (non-critical)
+- Kapt language version fallback to 1.9 (non-critical)
+- These warnings do not affect functionality
+
+Build Details:
+- Total Tasks: 58 actionable tasks (56 executed, 2 up-to-date)
+- Compilation: SUCCESS
+- Packaging: SUCCESS
+- R8 Minification: SUCCESS
+- Proguard: Applied (release build)
+
+Status: ✅ BUILD SUCCESSFUL - Ready for Testing
+
+Note: APK is unsigned. For distribution, signing is required.
+
+================================================================================
+2. INSTALLATION & LAUNCH TEST
+================================================================================
+
+Device Information:
+[TBD - Run: adb devices]
+
+Installation Command:
+adb install -r app/build/outputs/apk/release/app-release.apk
+
+Launch Command:
+adb shell am start -n com.tukanginAja.solusi/.MainActivity
+
+Test Results:
+[ ] Application launches without crash
+[ ] Splash screen displays correctly
+[ ] Login screen accessible
+[ ] All modules load properly
+
+Logcat Monitoring:
+[Run: adb logcat -s TukanginAja Firestore Maps FCMService]
+
+Expected Output:
+✅ Application opens successfully
+✅ Firebase initialized
+✅ Google Maps loaded
+✅ FCM service registered
+
+Status: [TBD - Run manual test]
+
+================================================================================
+3. REALTIME SYSTEM FEEDBACK TEST
+================================================================================
+
+3.1 FIRESTORE REALTIME UPDATE TEST
+-----------------------------------
+Test: Edit data in tukang_locations collection (change status online/offline)
+
+Expected:
+- Marker on map updates within < 1 second
+- Status badge changes color/text
+- No duplicate listeners
+
+Result: [TBD]
+
+Log:
+[Capture logcat during test]
+
+Status: [TBD]
+
+3.2 CHAT & NOTIFICATION TEST
+----------------------------
+Test: Send message from user account to tukang account
+
+Steps:
+1. User A sends message "Hello" to User B
+2. User B should see message in real-time
+3. User B puts app in background
+4. User A sends another message
+5. User B should receive push notification
+
+Expected:
+✅ Message appears in real-time on both sides
+✅ Notification appears when app is in background
+✅ Clicking notification opens ChatScreen
+✅ ChatId is correctly passed
+
+Result: [TBD]
+
+FCM Token Status:
+- User A FCM Token: [TBD]
+- User B FCM Token: [TBD]
+- Token saved in Firestore: [TBD]
+
+Status: [TBD]
+
+3.3 ORDER REQUEST FLOW TEST
+---------------------------
+Test: Complete order flow (Create → Accepted → In Progress → Completed)
+
+Steps:
+1. User creates service request
+2. Tukang accepts request
+3. Tukang starts journey (in_progress)
+4. Tukang completes order
+
+Expected:
+✅ Status changes in real-time
+✅ Map tracking active
+✅ Camera auto-follow works
+✅ Route polyline updates
+✅ Background location service active
+
+Result: [TBD]
+
+Status: [TBD]
+
+3.4 NOTIFICATION SYSTEM TEST
+----------------------------
+Test: FCM push notifications
+
+Notification Types to Test:
+[ ] Chat notification (type: "chat")
+[ ] Order notification (type: "order")
+[ ] Proximity notification (type: "proximity")
+[ ] Generic notification
+
+Expected:
+✅ Notification appears in status bar
+✅ Notification has correct title and body
+✅ Clicking notification navigates to correct screen
+✅ Notification channel created properly
+✅ POST_NOTIFICATIONS permission requested (Android 13+)
+
+Result: [TBD]
+
+Status: [TBD]
+
+================================================================================
+4. STRESS TEST & PERFORMANCE MONITORING
+================================================================================
+
+Duration: 15 minutes
+Test Scenario: Continuous usage - all modules active
+
+Memory Monitoring:
+Command: adb shell dumpsys meminfo com.tukanginAja.solusi
+
+Baseline (app start):
+- PSS: [TBD] MB
+- Private Dirty: [TBD] MB
+- Heap Size: [TBD] MB
+
+After 15 minutes:
+- PSS: [TBD] MB
+- Private Dirty: [TBD] MB
+- Heap Size: [TBD] MB
+- Memory Leak: [ ] YES [ ] NO
+
+CPU Monitoring:
+Command: adb shell top -n 1 | grep com.tukanginAja.solusi
+
+CPU Usage:
+- Baseline: [TBD] %
+- Peak: [TBD] %
+- Average: [TBD] %
+
+Firestore Listener Check:
+- Active listeners: [TBD]
+- Duplicate listeners: [ ] YES [ ] NO
+- Listener cleanup: [ ] PROPER [ ] LEAK
+
+Network Usage:
+- Firestore requests: [TBD]
+- Maps API calls: [TBD]
+- FCM messages received: [TBD]
+
+Crash Report:
+- Crashes during test: [ ] YES [ ] NO
+- Crashlytics logs: [TBD]
+
+Status: [TBD]
+
+================================================================================
+5. MODULE-SPECIFIC TEST RESULTS
+================================================================================
+
+5.1 AUTHENTICATION MODULE
+--------------------------
+[ ] Login successful
+[ ] Register successful
+[ ] Logout successful
+[ ] Session persistence
+[ ] FCM token saved on login
+
+Status: [TBD]
+
+5.2 MAPS & LOCATION MODULE
+--------------------------
+[ ] Google Maps loads correctly
+[ ] User location displayed
+[ ] Tukang markers visible
+[ ] Real-time location updates
+[ ] Camera auto-follow works
+[ ] Route polyline renders
+[ ] Route caching works
+[ ] Background location service active
+
+Status: [TBD]
+
+5.3 CHAT MODULE
+---------------
+[ ] Chat list loads
+[ ] Messages send successfully
+[ ] Real-time message sync
+[ ] Chat session creation
+[ ] Message timestamps correct
+[ ] UI updates smoothly
+
+Status: [TBD]
+
+5.4 ORDER MANAGEMENT MODULE
+---------------------------
+[ ] Order creation
+[ ] Order status updates
+[ ] Order history
+[ ] Real-time status sync
+[ ] Route history saved
+
+Status: [TBD]
+
+5.5 NOTIFICATION MODULE
+----------------------
+[ ] FCM token received
+[ ] Token saved to Firestore
+[ ] Chat notifications work
+[ ] Order notifications work
+[ ] Proximity notifications work
+[ ] Notification navigation works
+[ ] POST_NOTIFICATIONS permission handled
+
+Status: [TBD]
+
+5.6 BACKGROUND SERVICES
+------------------------
+[ ] BackgroundLocationService starts
+[ ] Location updates in background
+[ ] Foreground notification displays
+[ ] Service stops properly
+[ ] No memory leaks
+
+Status: [TBD]
+
+================================================================================
+6. KNOWN ISSUES & BUGS
+================================================================================
+
+Issue #1:
+Description: [TBD]
+Severity: [ ] CRITICAL [ ] HIGH [ ] MEDIUM [ ] LOW
+Status: [ ] OPEN [ ] FIXED [ ] DEFERRED
+
+Issue #2:
+Description: [TBD]
+Severity: [ ] CRITICAL [ ] HIGH [ ] MEDIUM [ ] LOW
+Status: [ ] OPEN [ ] FIXED [ ] DEFERRED
+
+[Add more issues as discovered]
+
+================================================================================
+7. PERFORMANCE METRICS
+================================================================================
+
+App Launch Time: [TBD] seconds
+Screen Navigation Time: [TBD] seconds average
+Firestore Response Time: [TBD] ms average
+Maps Rendering Time: [TBD] ms average
+Chat Message Delivery Time: [TBD] ms average
+Notification Delivery Time: [TBD] seconds
+
+================================================================================
+8. USER FEEDBACK (if applicable)
+================================================================================
+
+Feedback from internal testers:
+[Add feedback here]
+
+Overall Satisfaction: [TBD] / 10
+
+================================================================================
+9. TEST SUMMARY
+================================================================================
+
+Total Tests Run: [TBD]
+Tests Passed: [TBD]
+Tests Failed: [TBD]
+Tests Skipped: [TBD]
+
+Pass Rate: [TBD]%
+
+Critical Issues: [TBD]
+High Priority Issues: [TBD]
+Medium Priority Issues: [TBD]
+Low Priority Issues: [TBD]
+
+================================================================================
+10. RECOMMENDATIONS
+================================================================================
+
+1. [TBD]
+2. [TBD]
+3. [TBD]
+
+================================================================================
+11. NEXT STEPS
+================================================================================
+
+[ ] Fix critical issues (if any)
+[ ] Address high priority bugs
+[ ] Optimize performance bottlenecks
+[ ] Prepare for closed testing
+[ ] Submit to Play Console Internal Testing
+
+================================================================================
+REPORT END
+================================================================================
+
+Generated by: Cursor AI Testing Framework
+Report Version: 1.0
+

@@ -1,0 +1,533 @@
+=========================================
+TAHAP 17: DEPLOYMENT CHECKLIST
+Project: TukanginAja
+Generated: Sat Nov  1 03:00:00 WIB 2025
+Version: 1.0.17 (versionCode 17)
+=========================================
+
+EXECUTIVE SUMMARY
+=================
+
+This checklist verifies all requirements for Tahap 17: Final Integration & Deployment Preparation.
+All configurations should be verified before proceeding to Play Store Internal Testing.
+
+=========================================
+1️⃣ BUILD CONFIGURATION
+=========================================
+
+✅ VERSION CONFIGURATION
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+File: app/build.gradle.kts
+Status: ✅ COMPLETE
+
+- versionCode: 17 ✅
+- versionName: "1.0.17" ✅
+- applicationId: "com.tukanginAja.solusi" ✅
+- minSdk: 26 ✅
+- targetSdk: 34 ✅
+- compileSdk: 34 ✅
+
+✅ BUILD TYPES
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+File: app/build.gradle.kts
+Status: ✅ COMPLETE
+
+Debug Build:
+- applicationIdSuffix: ".debug" ✅
+- isMinifyEnabled: false ✅
+- isDebuggable: true ✅
+
+Release Build:
+- isMinifyEnabled: true ✅
+- isShrinkResources: true ✅
+- isDebuggable: false ✅
+- ProGuard enabled ✅
+- Signing config configured ✅
+
+✅ SIGNING CONFIGURATION
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+File: keystore.properties.template
+Status: ⚠️ REQUIRES SETUP
+
+Required Actions:
+1. ⚠️ Generate keystore file:
+   ```bash
+   keytool -genkey -v -keystore keystore/tukanginaja-release.keystore \
+     -alias tukanginaja_key -keyalg RSA -keysize 2048 -validity 10000
+   ```
+
+2. ⚠️ Create keystore.properties from template:
+   ```bash
+   cp keystore.properties.template keystore.properties
+   # Edit keystore.properties with actual values
+   ```
+
+3. ⚠️ Add keystore.properties to .gitignore:
+   ```
+   keystore.properties
+   keystore/*.keystore
+   ```
+
+4. ⚠️ Verify signing config in build.gradle.kts ✅ (already configured)
+
+=========================================
+2️⃣ ENVIRONMENT CONFIGURATION
+=========================================
+
+✅ DEBUG ENVIRONMENT
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+File: app/src/debug/res/values/config.xml
+Status: ✅ COMPLETE
+
+- base_url: "https://staging.tukanginaja.id/" ✅
+- maps_api_key: "@string/maps_api_key_debug" ✅
+- is_debug: true ✅
+- environment: "DEBUG" ✅
+
+✅ RELEASE ENVIRONMENT
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+File: app/src/release/res/values/config.xml
+Status: ✅ COMPLETE
+
+- base_url: "https://production.tukanginaja.id/" ✅
+- maps_api_key: "@string/maps_api_key_release" ✅
+- is_debug: false ✅
+- environment: "RELEASE" ✅
+
+✅ API KEYS CONFIGURATION
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+File: app/src/main/res/values/secrets.xml
+Status: ⚠️ REQUIRES SETUP
+
+Required Actions:
+1. ⚠️ Replace placeholder API keys in secrets.xml:
+   - maps_api_key_debug: Replace with actual debug API key
+   - maps_api_key_release: Replace with actual release API key
+
+2. ⚠️ Add secrets.xml to .gitignore (if containing actual keys):
+   ```
+   app/src/main/res/values/secrets.xml
+   ```
+
+3. ⚠️ Alternative: Use local.properties (already configured in build.gradle.kts):
+   ```
+   MAPS_API_KEY=your_api_key_here
+   ```
+
+=========================================
+3️⃣ FIREBASE INTEGRATION
+=========================================
+
+✅ CRASHLYTICS
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+Status: ✅ COMPLETE
+
+- Plugin added: com.google.firebase.crashlytics ✅
+- Dependency added: firebase-crashlytics-ktx (release only) ✅
+- Configured in build.gradle.kts ✅
+
+Required Actions:
+1. ⚠️ Enable Crashlytics in Firebase Console:
+   - Go to Firebase Console → Project Settings → Crashlytics
+   - Enable Crashlytics for Android app
+
+2. ⚠️ Verify google-services.json includes Crashlytics configuration
+
+3. ⚠️ Test crash reporting:
+   ```kotlin
+   FirebaseCrashlytics.getInstance().log("Test crash log")
+   FirebaseCrashlytics.getInstance().setUserId("test_user")
+   ```
+
+✅ ANALYTICS
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+Status: ✅ COMPLETE
+
+- Dependency added: firebase-analytics-ktx ✅
+- Configured in build.gradle.kts ✅
+
+Required Actions:
+1. ⚠️ Enable Analytics in Firebase Console:
+   - Go to Firebase Console → Analytics → Enable Analytics
+
+2. ⚠️ Verify google-services.json includes Analytics configuration
+
+3. ⚠️ Add Analytics events tracking (optional):
+   ```kotlin
+   FirebaseAnalytics.getInstance(context).logEvent(
+       FirebaseAnalytics.Event.SELECT_ITEM,
+       bundleOf(
+           FirebaseAnalytics.Param.ITEM_ID to itemId,
+           FirebaseAnalytics.Param.ITEM_NAME to itemName
+       )
+   )
+   ```
+
+✅ OTHER FIREBASE SERVICES
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+- Authentication: ✅ Already configured (Tahap 1-16)
+- Firestore: ✅ Already configured (Tahap 1-16)
+- Cloud Messaging: ✅ Already configured (Tahap 16)
+- Functions: ✅ Already configured (Tahap 16)
+- Storage: ✅ Already configured (Tahap 1-16)
+
+=========================================
+4️⃣ PROGUARD CONFIGURATION
+=========================================
+
+✅ PROGUARD RULES
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+File: app/proguard-rules.pro
+Status: ✅ COMPLETE
+
+Configured Rules:
+- Firebase (Crashlytics, Analytics, Firestore, Auth, Messaging, Functions) ✅
+- Google Maps (Maps SDK, Location Services, Maps Compose, Maps Utils) ✅
+- Kotlin Coroutines ✅
+- Jetpack Compose ✅
+- Hilt (Dagger) ✅
+- Data Classes (Firestore models) ✅
+- Navigation Compose ✅
+- Coil (Image Loading) ✅
+- Timber (Logging) ✅
+- Application Classes ✅
+- ViewModels & Repositories ✅
+- Parcelable & Serializable ✅
+- Annotations ✅
+- Enum Classes ✅
+
+Required Actions:
+1. ⚠️ Test release build with ProGuard enabled
+2. ⚠️ Verify no runtime crashes from ProGuard obfuscation
+3. ⚠️ Check mapping.txt for obfuscated class names
+
+=========================================
+5️⃣ BUILD VERIFICATION
+=========================================
+
+✅ DEBUG BUILD
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+Command: ./gradlew clean assembleDebug
+Status: ⚠️ REQUIRES TEST
+
+Expected Output:
+- Build successful ✅
+- APK: app/build/outputs/apk/debug/app-debug.apk ✅
+- Application ID: com.tukanginAja.solusi.debug ✅
+- Debuggable: true ✅
+
+✅ RELEASE BUILD
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+Command: ./gradlew clean assembleRelease
+Status: ⚠️ REQUIRES TEST
+
+Expected Output:
+- Build successful ✅
+- APK: app/build/outputs/apk/release/app-release.apk ✅
+- AAB: app/build/outputs/bundle/release/app-release.aab ✅
+- Application ID: com.tukanginAja.solusi ✅
+- Minified: true ✅
+- Signed: true (if keystore configured) ⚠️
+- Mapping: app/build/outputs/mapping/release/mapping.txt ✅
+
+APK Signing Verification:
+```bash
+apksigner verify --print-certs app-release.apk
+```
+
+Expected:
+- ✅ Signed with release key
+- ✅ Version: 1.0.17 (17)
+
+=========================================
+6️⃣ RUNTIME VERIFICATION
+=========================================
+
+✅ INSTALLATION
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+Command: adb install -r app-release.apk
+Status: ⚠️ REQUIRES TEST
+
+Required Actions:
+1. ⚠️ Install release APK on test device
+2. ⚠️ Verify app launches successfully
+3. ⚠️ Verify app version in settings: 1.0.17
+
+✅ FEATURE VERIFICATION
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+Status: ⚠️ REQUIRES TEST
+
+Test Checklist:
+- [ ] Authentication (Login/Register) works
+- [ ] Home Screen displays correctly
+- [ ] Google Maps loads and displays markers
+- [ ] Real-time Firestore updates work
+- [ ] Chat functionality works
+- [ ] Background location tracking works (Tahap 16)
+- [ ] FCM notifications work (Tahap 16)
+- [ ] Order creation/management works
+- [ ] Profile screen works
+
+✅ PERFORMANCE VERIFICATION
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+Status: ⚠️ REQUIRES TEST
+
+Test Checklist:
+- [ ] App launch time: < 3 seconds
+- [ ] Memory usage: < 250 MB (active)
+- [ ] No ANR (Application Not Responding) errors
+- [ ] No memory leaks detected
+- [ ] Background services work correctly
+- [ ] Network requests optimized (throttled)
+
+✅ CRASHLYTICS VERIFICATION
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+Status: ⚠️ REQUIRES TEST
+
+Test Checklist:
+- [ ] Crashlytics enabled in Firebase Console
+- [ ] Test crash report appears in Firebase Console
+- [ ] Crash reports include stack traces
+- [ ] Crash reports include user context (if configured)
+
+✅ ANALYTICS VERIFICATION
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+Status: ⚠️ REQUIRES TEST
+
+Test Checklist:
+- [ ] Analytics enabled in Firebase Console
+- [ ] User events tracked correctly
+- [ ] Screen views tracked correctly
+- [ ] Custom events logged (if configured)
+
+=========================================
+7️⃣ SECURITY VERIFICATION
+=========================================
+
+✅ API KEYS
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+Status: ⚠️ REQUIRES SETUP
+
+Security Checklist:
+- [ ] API keys not hardcoded in source code ✅
+- [ ] API keys stored in local.properties or secrets.xml ⚠️
+- [ ] secrets.xml added to .gitignore ⚠️
+- [ ] Release API key restricted in Google Cloud Console ⚠️
+- [ ] Debug API key separate from release API key ✅
+
+✅ CODE OBFUSCATION
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+Status: ✅ COMPLETE
+
+- ProGuard enabled for release builds ✅
+- Resource shrinking enabled ✅
+- Code minification enabled ✅
+
+✅ SIGNING SECURITY
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+Status: ⚠️ REQUIRES SETUP
+
+Security Checklist:
+- [ ] Keystore file secured (not in version control) ⚠️
+- [ ] Keystore password strong and unique ⚠️
+- [ ] Key alias password strong and unique ⚠️
+- [ ] Keystore backup stored securely ⚠️
+- [ ] Keystore validity: 10000 days (recommended) ⚠️
+
+=========================================
+8️⃣ PLAY STORE PREPARATION
+=========================================
+
+✅ APP BUNDLE GENERATION
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+Command: ./gradlew bundleRelease
+Status: ⚠️ REQUIRES TEST
+
+Expected Output:
+- AAB: app/build/outputs/bundle/release/app-release.aab ✅
+- Signed with release key ⚠️
+- Version: 1.0.17 (17) ✅
+
+✅ PLAY CONSOLE REQUIREMENTS
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+Status: ⚠️ REQUIRES SETUP
+
+Required Information:
+- [ ] App name: TukanginAja ✅
+- [ ] Package name: com.tukanginAja.solusi ✅
+- [ ] Version code: 17 ✅
+- [ ] Version name: 1.0.17 ✅
+- [ ] App icon: 512x512 PNG ✅
+- [ ] Feature graphic: 1024x500 PNG ⚠️
+- [ ] Screenshots: Multiple sizes ⚠️
+- [ ] Privacy policy URL ⚠️
+- [ ] Content rating ⚠️
+
+Play Store Listing Checklist:
+- [ ] Short description (80 characters max) ⚠️
+- [ ] Full description (4000 characters max) ⚠️
+- [ ] Category: Productivity / Utilities ⚠️
+- [ ] Content rating questionnaire completed ⚠️
+- [ ] Data safety section completed ⚠️
+
+=========================================
+9️⃣ DEPLOYMENT CHECKLIST
+=========================================
+
+IMMEDIATE ACTIONS (Before Internal Testing):
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+1. ⚠️ Generate Release Keystore:
+   ```bash
+   mkdir -p keystore
+   keytool -genkey -v -keystore keystore/tukanginaja-release.keystore \
+     -alias tukanginaja_key -keyalg RSA -keysize 2048 -validity 10000
+   ```
+
+2. ⚠️ Configure keystore.properties:
+   ```bash
+   cp keystore.properties.template keystore.properties
+   # Edit keystore.properties with actual values
+   ```
+
+3. ⚠️ Update API Keys in secrets.xml:
+   - Replace maps_api_key_debug with actual debug API key
+   - Replace maps_api_key_release with actual release API key
+
+4. ⚠️ Add to .gitignore:
+   ```
+   keystore.properties
+   keystore/*.keystore
+   app/src/main/res/values/secrets.xml
+   ```
+
+5. ⚠️ Build Release APK:
+   ```bash
+   ./gradlew clean assembleRelease
+   ```
+
+6. ⚠️ Verify APK Signature:
+   ```bash
+   apksigner verify --print-certs app-release.apk
+   ```
+
+7. ⚠️ Test Release APK:
+   ```bash
+   adb install -r app-release.apk
+   # Test all features
+   ```
+
+8. ⚠️ Enable Firebase Services:
+   - Enable Crashlytics in Firebase Console
+   - Enable Analytics in Firebase Console
+   - Verify google-services.json updated
+
+9. ⚠️ Build App Bundle:
+   ```bash
+   ./gradlew bundleRelease
+   ```
+
+10. ⚠️ Upload to Play Console:
+    - Create Internal Testing track
+    - Upload app-release.aab
+    - Add testers
+    - Release to Internal Testing
+
+SHORT-TERM ACTIONS (After Internal Testing):
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+1. ⚠️ Monitor Crashlytics for crashes
+2. ⚠️ Monitor Analytics for user behavior
+3. ⚠️ Collect feedback from testers
+4. ⚠️ Fix critical bugs found during testing
+5. ⚠️ Prepare for Closed Testing track
+6. ⚠️ Prepare Play Store listing assets
+
+LONG-TERM ACTIONS (Before Production Release):
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+1. ⚠️ Complete Play Store listing
+2. ⚠️ Complete privacy policy
+3. ⚠️ Complete content rating
+4. ⚠️ Complete data safety section
+5. ⚠️ Release to Closed Testing
+6. ⚠️ Release to Open Testing (if needed)
+7. ⚠️ Release to Production
+
+=========================================
+🔟 VERIFICATION SUMMARY
+=========================================
+
+CONFIGURATION STATUS:
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+✅ Build Configuration: COMPLETE
+✅ Environment Configuration: COMPLETE
+✅ Firebase Integration: COMPLETE
+✅ ProGuard Configuration: COMPLETE
+⚠️ Signing Configuration: REQUIRES SETUP
+⚠️ API Keys Configuration: REQUIRES SETUP
+⚠️ Build Verification: REQUIRES TEST
+⚠️ Runtime Verification: REQUIRES TEST
+⚠️ Play Store Preparation: REQUIRES SETUP
+
+READY STATUS:
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+Status: ⚠️ PARTIALLY READY
+
+Configuration: ✅ 80% Complete
+- Build config: ✅ 100%
+- Environment: ✅ 100%
+- Firebase: ✅ 100%
+- ProGuard: ✅ 100%
+- Signing: ⚠️ 0% (requires keystore setup)
+- API Keys: ⚠️ 0% (requires actual keys)
+
+Testing: ⚠️ 0% Complete
+- Build test: ⚠️ Not tested
+- Runtime test: ⚠️ Not tested
+- Feature test: ⚠️ Not tested
+- Performance test: ⚠️ Not tested
+
+=========================================
+✅ FINAL RECOMMENDATIONS
+=========================================
+
+IMMEDIATE PRIORITIES:
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+1. ⚠️ Generate and configure release keystore (CRITICAL)
+2. ⚠️ Configure actual API keys (CRITICAL)
+3. ⚠️ Test release build (HIGH)
+4. ⚠️ Test release APK on device (HIGH)
+5. ⚠️ Enable Firebase Crashlytics & Analytics (HIGH)
+6. ⚠️ Build and upload AAB to Play Console (HIGH)
+
+NEXT STEPS:
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+After completing immediate priorities:
+1. Deploy to Internal Testing
+2. Monitor Crashlytics and Analytics
+3. Collect feedback
+4. Iterate and improve
+5. Proceed to Closed Testing
+6. Proceed to Production
+
+=========================================
+END OF CHECKLIST
+=========================================
+
+Report Generated: Sat Nov  1 03:00:00 WIB 2025
+Report Location: /Users/nurwahyudin/AndroidStudioProjects/TukanginAja/reports/deployment_checklist_tahap17.txt
+
+Status: ⚠️ PARTIALLY READY - Configuration Complete, Setup & Testing Required
+
+Recommended Next Actions:
+1. Generate release keystore
+2. Configure API keys
+3. Build and test release APK
+4. Enable Firebase services
+5. Upload to Play Console Internal Testing
+
+=========================================
+

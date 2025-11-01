@@ -21,42 +21,85 @@ class AuthViewModel @Inject constructor(
     val uiState: StateFlow<AuthUiState> = _uiState.asStateFlow()
     
     fun login(email: String, password: String) {
-        if (email.isBlank() || password.isBlank()) {
-            _uiState.value = AuthUiState.Error("Email and password cannot be empty")
-            return
+        // Validation
+        when {
+            email.isBlank() -> {
+                _uiState.value = AuthUiState.Error("Email cannot be empty")
+                return
+            }
+            !android.util.Patterns.EMAIL_ADDRESS.matcher(email).matches() -> {
+                _uiState.value = AuthUiState.Error("Please enter a valid email address")
+                return
+            }
+            password.isBlank() -> {
+                _uiState.value = AuthUiState.Error("Password cannot be empty")
+                return
+            }
+            password.length < 6 -> {
+                _uiState.value = AuthUiState.Error("Password must be at least 6 characters")
+                return
+            }
         }
         
         viewModelScope.launch {
             _uiState.value = AuthUiState.Loading
-            loginUseCase(email, password)
+            loginUseCase(email.trim(), password)
                 .onSuccess {
                     _uiState.value = AuthUiState.Success
                 }
                 .onFailure { exception ->
-                    _uiState.value = AuthUiState.Error(exception.message ?: "Login failed")
+                    val errorMessage = when {
+                        exception.message?.contains("password", ignoreCase = true) == true -> 
+                            "Invalid password"
+                        exception.message?.contains("user", ignoreCase = true) == true -> 
+                            "User not found"
+                        exception.message?.contains("network", ignoreCase = true) == true -> 
+                            "Network error. Please check your connection"
+                        else -> exception.message ?: "Login failed. Please try again"
+                    }
+                    _uiState.value = AuthUiState.Error(errorMessage)
                 }
         }
     }
     
     fun register(email: String, password: String) {
-        if (email.isBlank() || password.isBlank()) {
-            _uiState.value = AuthUiState.Error("Email and password cannot be empty")
-            return
-        }
-        
-        if (password.length < 6) {
-            _uiState.value = AuthUiState.Error("Password must be at least 6 characters")
-            return
+        // Validation
+        when {
+            email.isBlank() -> {
+                _uiState.value = AuthUiState.Error("Email cannot be empty")
+                return
+            }
+            !android.util.Patterns.EMAIL_ADDRESS.matcher(email).matches() -> {
+                _uiState.value = AuthUiState.Error("Please enter a valid email address")
+                return
+            }
+            password.isBlank() -> {
+                _uiState.value = AuthUiState.Error("Password cannot be empty")
+                return
+            }
+            password.length < 6 -> {
+                _uiState.value = AuthUiState.Error("Password must be at least 6 characters")
+                return
+            }
         }
         
         viewModelScope.launch {
             _uiState.value = AuthUiState.Loading
-            registerUseCase(email, password)
+            registerUseCase(email.trim(), password)
                 .onSuccess {
                     _uiState.value = AuthUiState.Success
                 }
                 .onFailure { exception ->
-                    _uiState.value = AuthUiState.Error(exception.message ?: "Registration failed")
+                    val errorMessage = when {
+                        exception.message?.contains("email", ignoreCase = true) == true -> 
+                            "This email is already registered"
+                        exception.message?.contains("weak", ignoreCase = true) == true -> 
+                            "Password is too weak"
+                        exception.message?.contains("network", ignoreCase = true) == true -> 
+                            "Network error. Please check your connection"
+                        else -> exception.message ?: "Registration failed. Please try again"
+                    }
+                    _uiState.value = AuthUiState.Error(errorMessage)
                 }
         }
     }

@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- TAHAP 17: Debug environment configuration -->
+<resources>
+    <string name="base_url">https://staging.tukanginaja.id/</string>
+    <string name="maps_api_key">@string/maps_api_key_debug</string>
+    <bool name="is_debug">true</bool>
+    <string name="environment">DEBUG</string>
+</resources>
+

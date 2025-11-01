@@ -1,0 +1,23 @@
+# ========== Folder build dan cache ==========
+.gradle/
+build/
+.idea/
+.git/
+.gitignore
+.DS_Store
+
+# ========== File konfigurasi lokal ==========
+local.properties
+google-services.json
+*.iml
+
+# ========== File hasil kompilasi ==========
+app/build/
+app/release/
+app/debug/
+
+# ========== File tidak penting ==========
+*.apk
+*.keystore
+*.jar
+*.log

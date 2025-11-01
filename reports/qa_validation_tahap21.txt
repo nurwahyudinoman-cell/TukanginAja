@@ -1,0 +1,444 @@
+================================================================================
+TUKANGINAJA - QA VALIDATION CHECKLIST
+TAHAP 21: PRE-RELEASE QA VALIDATION
+================================================================================
+
+Date: 2024-11-01
+Build Version: 1.0.21 (versionCode: 21)
+Build Target: Android 14 (API 34)
+Package: com.tukanginAja.solusi
+Firebase Project: tukanginaja-b1s4
+Environment: Debug (Staging)
+
+================================================================================
+AUTOMATED VALIDATION CHECKLIST
+================================================================================
+
+================================================================================
+1. SYSTEM STABILITY
+================================================================================
+
+✅ Crash Detection
+[ ] No crash during login
+[ ] No crash when opening map
+[ ] No crash when opening chat
+[ ] No crash during navigation
+[ ] No crash when minimizing app
+
+Logcat Error Check:
+[ ] No NullPointerException in logcat
+[ ] No IllegalStateException in logcat
+[ ] No SecurityException in logcat
+[ ] No unhandled exceptions
+
+Memory Usage:
+[ ] Initial PSS: [TBD] MB
+[ ] After 15 min: [TBD] MB
+[ ] Memory increase: [TBD] MB (< 50 MB acceptable)
+[ ] No OutOfMemoryError
+
+CPU Usage:
+[ ] Baseline CPU: [TBD] %
+[ ] Peak CPU: [TBD] %
+[ ] Average CPU: [TBD] % (< 30% ideal)
+[ ] No excessive CPU usage
+
+Status: [TBD] PASS / FAIL
+
+================================================================================
+2. MAP & LOCATION
+================================================================================
+
+✅ Map Display
+[ ] Map displays default location (Jakarta: -6.2088, 106.8456)
+[ ] Map loads without errors
+[ ] Google Maps SDK initialized correctly
+[ ] Camera position set correctly
+
+✅ Tukang Markers
+[ ] Tukang markers display in real-time
+[ ] Marker colors correct:
+    - 🔵 Online: HUE_BLUE
+    - 🟠 Offline: HUE_ORANGE
+[ ] Marker info windows work correctly
+[ ] No duplicate markers
+[ ] No marker flickering
+[ ] Markers update within < 1 second
+
+✅ Location Services
+[ ] User location permission requested
+[ ] User location displayed (if permission granted)
+[ ] Location accuracy acceptable
+[ ] GPS status indicator works
+
+✅ Auto-Follow Feature
+[ ] Auto-follow toggle works
+[ ] Camera follows tukang marker when enabled
+[ ] Camera stops following when disabled
+[ ] Smooth camera animations
+[ ] No camera jitter or stuttering
+
+✅ Map Interactions
+[ ] Zoom in/out works smoothly
+[ ] Pan/move map works correctly
+[ ] Map controls (zoom buttons) work
+[ ] Map gestures responsive
+
+Status: [TBD] PASS / FAIL
+
+================================================================================
+3. FIRESTORE SYNC
+================================================================================
+
+✅ CRUD Operations - Real-time
+[ ] Create tukang → appears in map immediately
+[ ] Update tukang status → marker color changes in < 1 second
+[ ] Delete tukang → marker disappears immediately
+[ ] All changes reflect in real-time
+
+✅ Order & Status Updates
+[ ] Order status changes in real-time
+[ ] Status updates without app reload
+[ ] Dashboard tukang updates automatically
+[ ] User dashboard updates automatically
+[ ] No manual refresh needed
+
+✅ Listener Management
+[ ] No duplicate listeners in logcat
+[ ] All listeners properly cleaned up (awaitClose)
+[ ] Logcat shows: "FirestoreListener active" only when needed
+[ ] No listener leaks detected
+[ ] Listener count stable (no growth over time)
+
+✅ Data Synchronization
+[ ] Data syncs across all screens
+[ ] No data inconsistencies
+[ ] Offline changes sync when online
+[ ] Sync errors handled gracefully
+
+Status: [TBD] PASS / FAIL
+
+================================================================================
+4. ROUTE & TRACKING
+================================================================================
+
+✅ Route Display
+[ ] Route polyline renders correctly
+[ ] Polyline connects origin to destination
+[ ] Polyline color/style visible
+[ ] Polyline updates when tukang moves
+
+✅ Directions API
+[ ] Route fetched from Directions API
+[ ] Route data accurate
+[ ] No ZERO_RESULTS errors
+[ ] Error handling works (shows message if route unavailable)
+
+✅ Distance & Duration
+[ ] Distance displayed correctly
+[ ] Duration displayed correctly
+[ ] Distance format (km/m) correct
+[ ] Duration format (hours/minutes/seconds) correct
+[ ] Updates in real-time
+
+✅ Camera Auto-Follow
+[ ] Camera follows tukang marker
+[ ] Camera position updates smoothly
+[ ] No camera jitter
+[ ] Auto-follow can be enabled/disabled
+
+✅ Background Tracking
+[ ] Background location service starts
+[ ] Foreground notification appears
+[ ] Location updates continue in background
+[ ] No crash when app minimized
+[ ] Service stops properly
+
+✅ Route Caching
+[ ] Route cached correctly
+[ ] Cached route used when appropriate
+[ ] Route updates when significant movement
+[ ] Fallback to cached route if API fails
+
+Status: [TBD] PASS / FAIL
+
+================================================================================
+5. CHAT & NOTIFICATION
+================================================================================
+
+✅ Chat Functionality
+[ ] Chat list loads correctly
+[ ] Messages send successfully
+[ ] Messages receive in real-time
+[ ] Bidirectional messaging works
+[ ] Message timestamps correct
+[ ] Message bubbles align correctly
+[ ] Chat UI responsive
+
+✅ Real-time Sync
+[ ] Messages appear instantly on both sides
+[ ] No duplicate messages
+[ ] No missing messages
+[ ] Message order correct
+[ ] Typing indicators work (if implemented)
+
+✅ FCM Integration
+[ ] FCM token generated
+[ ] FCM token saved to Firestore
+[ ] Token stored in users collection
+[ ] Token updated when app reinstalled
+
+✅ Notifications - Foreground
+[ ] Notification appears when app in foreground
+[ ] Notification title correct
+[ ] Notification body correct
+[ ] Notification icon displays
+[ ] Click notification → opens ChatScreen
+[ ] Correct chatId passed
+
+✅ Notifications - Background
+[ ] Notification appears when app in background
+[ ] Notification appears when app closed
+[ ] Notification click opens app correctly
+[ ] Navigation to chat works from notification
+[ ] No crash on notification click
+
+✅ POST_NOTIFICATIONS Permission (Android 13+)
+[ ] Permission requested on first launch
+[ ] Permission dialog displays
+[ ] Permission granted persists
+[ ] Notification channel created
+
+Status: [TBD] PASS / FAIL
+
+================================================================================
+6. UI & NAVIGATION
+================================================================================
+
+✅ Navigation
+[ ] Home screen accessible
+[ ] Map screen accessible
+[ ] Chat screen accessible
+[ ] Profile screen accessible
+[ ] Orders screen accessible
+[ ] All bottom navigation items work
+[ ] No navigation loops
+[ ] Back button works correctly
+[ ] Deep links work (from notifications)
+
+✅ UI Responsiveness
+[ ] All buttons active and responsive
+[ ] No UI freezing
+[ ] Input fields respond quickly
+[ ] Scroll works smoothly
+[ ] Loading indicators display correctly
+[ ] Error messages display correctly
+
+✅ Compose UI Stability
+[ ] No excessive recomposition
+[ ] UI updates smoothly
+[ ] No flickering
+[ ] No layout shifts
+[ ] Material 3 theme applied correctly
+[ ] Dark mode works (if implemented)
+
+✅ Screen Transitions
+[ ] Screen transitions smooth
+[ ] No lag during navigation
+[ ] Animations work correctly
+[ ] State preserved during navigation
+
+Status: [TBD] PASS / FAIL
+
+================================================================================
+7. PERFORMANCE
+================================================================================
+
+✅ ANR (Application Not Responding)
+[ ] No ANR during normal usage
+[ ] No ANR during heavy operations
+[ ] UI remains responsive
+[ ] No "App isn't responding" dialogs
+
+✅ Input Responsiveness
+[ ] Button clicks respond < 500ms
+[ ] Text input responsive
+[ ] Gestures respond quickly
+[ ] Navigation responds immediately
+
+✅ Frame Rate
+[ ] FPS stable at 60 (or device max)
+[ ] No frame drops during normal usage
+[ ] No frame drops during map rendering
+[ ] No frame drops during chat scrolling
+
+✅ Memory Leak Detection
+[ ] No memory leaks detected
+[ ] Memory usage stable over time
+[ ] No OutOfMemoryError
+[ ] Heap size reasonable
+
+Status: [TBD] PASS / FAIL
+
+================================================================================
+8. SECURITY & PERMISSIONS
+================================================================================
+
+✅ Location Permissions
+[ ] ACCESS_FINE_LOCATION permission requested
+[ ] ACCESS_COARSE_LOCATION permission requested
+[ ] Permission granted works correctly
+[ ] Permission denied handled gracefully
+[ ] No "Permission denied" warnings in logcat
+
+✅ Background Location Permission (Android 10+)
+[ ] ACCESS_BACKGROUND_LOCATION requested if needed
+[ ] Background location works when granted
+[ ] Graceful degradation when denied
+
+✅ Notification Permission (Android 13+)
+[ ] POST_NOTIFICATIONS permission requested
+[ ] Notification works when granted
+[ ] App works when denied (no crash)
+
+✅ Internet Permission
+[ ] INTERNET permission in manifest
+[ ] Network operations work correctly
+[ ] Offline mode handled gracefully
+
+✅ Firestore Rules
+[ ] Firestore rules readable
+[ ] Read operations work correctly
+[ ] Write operations work correctly
+[ ] Security rules enforce correctly
+[ ] No unauthorized access
+
+Status: [TBD] PASS / FAIL
+
+================================================================================
+9. BUILD VERIFICATION
+================================================================================
+
+✅ Version Information
+[ ] versionCode = 21
+[ ] versionName = "1.0.21"
+[ ] Application ID: com.tukanginAja.solusi
+[ ] Min SDK: 26
+[ ] Target SDK: 34
+
+✅ Build Configuration
+[ ] Debug build successful: ✅
+[ ] Release build successful: ✅
+[ ] ProGuard rules correct (release)
+[ ] Signing configuration valid
+
+✅ Keystore (Release)
+[ ] keystore.properties exists
+[ ] Release keystore valid
+[ ] Signing keys secure
+
+✅ APK Verification
+[ ] Debug APK generated: app/build/outputs/apk/debug/app-debug.apk
+[ ] Release APK generated: app/build/outputs/apk/release/app-release-unsigned.apk
+[ ] APK size reasonable
+[ ] No missing resources
+
+Status: [TBD] PASS / FAIL
+
+================================================================================
+10. MANUAL TESTING SCENARIOS
+================================================================================
+
+✅ Scenario 1: Login Flow
+[ ] Open app → Splash screen
+[ ] Navigate to Login
+[ ] Enter credentials
+[ ] Login successful
+[ ] Navigate to Home
+[ ] FCM token generated and saved
+
+✅ Scenario 2: Order Creation
+[ ] Navigate to Map
+[ ] Select tukang
+[ ] Create order request
+[ ] Order appears in Firestore
+[ ] Tukang receives notification
+[ ] Order status updates real-time
+
+✅ Scenario 3: Chat Communication
+[ ] Open chat with tukang
+[ ] Send message from user
+[ ] Message appears in real-time on both sides
+[ ] Send message from tukang
+[ ] Message appears in real-time on both sides
+[ ] Close app → Send message → Notification appears
+
+✅ Scenario 4: Location Tracking
+[ ] Start order tracking
+[ ] Verify route displays
+[ ] Minimize app
+[ ] Verify background tracking active
+[ ] Verify foreground notification
+[ ] Open app → Verify location updated
+
+✅ Scenario 5: Order Completion
+[ ] Tukang starts journey
+[ ] Status changes to "in_progress"
+[ ] Route tracking active
+[ ] Tukang completes order
+[ ] Status changes to "completed"
+[ ] Route history saved
+
+✅ Scenario 6: Firestore Real-time Updates
+[ ] Open MapScreen
+[ ] Edit tukang_locations in Firestore Console
+[ ] Change status to "offline"
+[ ] Marker color changes within 1 second
+[ ] Change status to "online"
+[ ] Marker color changes within 1 second
+
+✅ Scenario 7: App State Persistence
+[ ] Login and navigate to Map
+[ ] Close app completely
+[ ] Reopen app
+[ ] Session persists
+[ ] User still logged in
+[ ] Navigation state preserved
+
+Status: [TBD] PASS / FAIL
+
+================================================================================
+TEST SUMMARY
+================================================================================
+
+Total Test Categories: 10
+Tests Passed: [TBD]
+Tests Failed: [TBD]
+Tests Skipped: [TBD]
+
+Pass Rate: [TBD]%
+
+Critical Issues: [TBD]
+High Priority Issues: [TBD]
+Medium Priority Issues: [TBD]
+Low Priority Issues: [TBD]
+
+================================================================================
+FINAL STATUS
+================================================================================
+
+Overall QA Status: [TBD] ✅ PASS / ❌ FAIL / ⚠️ WARNING
+
+Ready for Release: [TBD] YES / NO
+
+Notes:
+[TBD - Add any specific notes or issues]
+
+================================================================================
+REPORT END
+================================================================================
+
+Generated by: TukanginAja QA Validation System
+Report Version: 1.0
+Date: 2024-11-01
+
