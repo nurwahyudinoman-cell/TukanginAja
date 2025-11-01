@@ -1,0 +1,45 @@
+name: TukanginAja Release Automation
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [ feature/modules-phase3 ]
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Setup JDK
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "17"
+
+      - name: Decrypt Play Store Key
+        env:
+          SERVICE_KEY: ${{ secrets.PLAYSTORE_SERVICE_KEY }}
+        run: |
+          mkdir -p infra/keys
+          echo "$SERVICE_KEY" > infra/keys/playstore-service.json
+
+      - name: Build Release Bundle
+        run: ./gradlew clean bundleRelease
+
+      - name: Upload to Play Console (Internal Track)
+        uses: r0adkll/upload-google-play@v1
+        with:
+          serviceAccountJson: infra/keys/playstore-service.json
+          packageName: com.tukangin.app
+          releaseFiles: app/build/outputs/bundle/release/app-release.aab
+          track: internal
+          status: completed
+          inAppUpdatePriority: 3
+
+      - name: Save Deployment Report
+        run: |
+          mkdir -p reports
+          echo "Release deployed on $(date)" > reports/release-deploy-$(date +%Y%m%d).txt
+
