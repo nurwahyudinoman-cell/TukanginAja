@@ -21,8 +21,8 @@ android {
         minSdk = 26
         targetSdk = 34
         // TAHAP 22: Version update for Final Build & Play Console Deployment
-        versionCode = 22
-        versionName = "1.0.22"
+        versionCode = 100
+        versionName = "1.0.0-RC1"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         

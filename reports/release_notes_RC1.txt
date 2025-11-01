@@ -1,0 +1,7 @@
+TukanginAja v1.0.0-RC1
+-----------------------------
+• Integrated Tukang, Booking, Notification, and Realtime modules
+• Auto Repair Loop stabilized across all builds
+• CI/CD pipelines and monitoring automation completed
+• System ready for internal Play Console testing
+Build Date: Sun Nov  2 00:18:29 WIB 2025
