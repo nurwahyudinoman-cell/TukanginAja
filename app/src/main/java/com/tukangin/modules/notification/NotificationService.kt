@@ -1,86 +1,75 @@
 package com.tukangin.modules.notification
 
+import android.Manifest
+import android.app.NotificationChannel
+import android.app.NotificationManager
 import android.content.Context
-import com.google.firebase.auth.FirebaseAuth
-import com.google.firebase.firestore.FirebaseFirestore
-import com.google.firebase.messaging.FirebaseMessaging
-import com.google.firebase.messaging.RemoteMessage
-import com.tukanginAja.solusi.notification.NotificationHelper
-import kotlinx.coroutines.tasks.await
-import dagger.hilt.android.qualifiers.ApplicationContext
-import javax.inject.Inject
-import javax.inject.Singleton
+import android.content.pm.PackageManager
+import android.os.Build
+import androidx.core.app.NotificationCompat
+import androidx.core.app.NotificationManagerCompat
+import androidx.core.content.ContextCompat
+import com.tukanginAja.solusi.R
 
-@Singleton
-class NotificationService @Inject constructor(
-    @ApplicationContext private val context: Context,
-    private val firebaseMessaging: FirebaseMessaging,
-    private val firestore: FirebaseFirestore,
-    private val firebaseAuth: FirebaseAuth
-) {
+object NotificationService {
 
-    private var bookingUpdateHandler: ((bookingId: String, status: String) -> Unit)? = null
+    private const val CHANNEL_ID = "tukangin_notifications"
+    private const val CHANNEL_NAME = "Tukangin Updates"
+    private const val CHANNEL_DESCRIPTION = "Service updates and booking status"
 
-    fun setBookingUpdateHandler(handler: (bookingId: String, status: String) -> Unit) {
-        bookingUpdateHandler = handler
-    }
+    fun createChannel(context: Context) {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            val channel = NotificationChannel(
+                CHANNEL_ID,
+                CHANNEL_NAME,
+                NotificationManager.IMPORTANCE_HIGH
+            ).apply {
+                description = CHANNEL_DESCRIPTION
+            }
 
-    suspend fun registerToken(token: String): Result<Unit> = runCatching {
-        val currentUser = firebaseAuth.currentUser ?: throw IllegalStateException("User not logged in")
-        val tokenRef = firestore.collection("users")
-            .document(currentUser.uid)
-            .collection("fcmTokens")
-            .document(token)
-        val data = mapOf(
-            "token" to token,
-            "createdAt" to System.currentTimeMillis()
-        )
-        tokenRef.set(data).await()
-    }
-
-    fun requestToken(onResult: (Result<String>) -> Unit) {
-        firebaseMessaging.token
-            .addOnSuccessListener { token -> onResult(Result.success(token)) }
-            .addOnFailureListener { exception -> onResult(Result.failure(exception)) }
-    }
-
-    fun handleRemoteMessage(message: RemoteMessage) {
-        val title = message.notification?.title ?: message.data["title"] ?: "" 
-        val body = message.notification?.body ?: message.data["body"] ?: ""
-        if (title.isNotBlank() || body.isNotBlank()) {
-            sendLocalNotification(title, body, message.data)
-        }
-
-        val bookingId = message.data["bookingId"]
-        val status = message.data["status"]
-        if (bookingId != null && status != null) {
-            bookingUpdateHandler?.invoke(bookingId, status)
+            val manager = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+                context.getSystemService(NotificationManager::class.java)
+            } else {
+                @Suppress("DEPRECATION")
+                ContextCompat.getSystemService(context, NotificationManager::class.java)
+            }
+            manager?.createNotificationChannel(channel)
         }
     }
 
-    fun sendLocalNotification(title: String, body: String, data: Map<String, String> = emptyMap()) {
+    fun showNotification(context: Context, title: String, message: String) {
+        createChannel(context)
+
+        val notification = NotificationCompat.Builder(context.applicationContext, CHANNEL_ID)
+            .setSmallIcon(R.drawable.ic_notification)
+            .setContentTitle(title)
+            .setContentText(message)
+            .setPriority(NotificationCompat.PRIORITY_HIGH)
+            .setAutoCancel(true)
+            .build()
+
+        val managerCompat = NotificationManagerCompat.from(context)
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            val permissionState = ContextCompat.checkSelfPermission(
+                context,
+                Manifest.permission.POST_NOTIFICATIONS
+            )
+            if (permissionState != PackageManager.PERMISSION_GRANTED) {
+                return
+            }
+        }
+
+        if (!managerCompat.areNotificationsEnabled()) {
+            return
+        }
+
         runCatching {
-            NotificationHelper.showNotificationFromDataMessage(
-                context = context,
-                title = title,
-                body = body,
-                type = data["type"],
-                chatId = data["chatId"],
-                orderId = data["orderId"],
-                payload = data
+            managerCompat.notify(
+                (System.currentTimeMillis() % Int.MAX_VALUE).toInt(),
+                notification
             )
         }
-    }
-
-    suspend fun sendNotificationRequest(targetUserId: String, payload: Map<String, Any?>): Result<Unit> = runCatching {
-        val currentUser = firebaseAuth.currentUser ?: throw IllegalStateException("User not logged in")
-        val request = mapOf(
-            "toUserId" to targetUserId,
-            "payload" to payload,
-            "createdBy" to currentUser.uid,
-            "createdAt" to System.currentTimeMillis()
-        )
-        firestore.collection("notification_requests").add(request).await()
     }
 }
 
