@@ -6,7 +6,6 @@ import com.tukanginAja.solusi.data.model.Booking
 import com.tukanginAja.solusi.data.model.Tukang
 import com.tukanginAja.solusi.data.model.User
 import com.tukangin.modules.booking.BookingModel
-import com.tukangin.modules.booking.BookingStatus
 import com.tukangin.modules.tukang.TukangModel
 import kotlinx.coroutines.tasks.await
 import javax.inject.Inject
@@ -150,50 +149,57 @@ class FirestoreHelper @Inject constructor(
     // endregion
 
     // region Module Booking
-    suspend fun createBookingModel(booking: BookingModel): Result<String> = runCatching {
+    suspend fun saveBooking(booking: BookingModel) {
         val id = booking.id.ifBlank { bookingModuleCollection.document().id }
         val data = booking.copy(
             id = id,
-            createdAt = booking.createdAt.takeIf { it > 0 } ?: System.currentTimeMillis()
+            scheduledAt = booking.scheduledAt,
+            completedAt = booking.completedAt
         )
         bookingModuleCollection.document(id).set(data).await()
-        logBookingAudit(id, BookingStatus.PENDING, booking.userId)
-        id
+        logBookingAudit(id, data.status, actorId = booking.userId)
     }
 
-    suspend fun getBookingsForUser(userId: String): Result<List<BookingModel>> = runCatching {
+    suspend fun updateModuleBookingStatus(bookingId: String, status: String) {
+        require(bookingId.isNotBlank()) { "Booking ID cannot be empty" }
+        val updates = mutableMapOf<String, Any?>(
+            "status" to status,
+            "updatedAt" to System.currentTimeMillis()
+        )
+        if (status.equals("completed", ignoreCase = true)) {
+            updates["completedAt"] = System.currentTimeMillis()
+        } else {
+            updates["completedAt"] = null
+        }
+        bookingModuleCollection.document(bookingId).update(updates).await()
+        logBookingAudit(bookingId, status, actorId = null)
+    }
+
+    suspend fun getBookingsByUser(userId: String): List<BookingModel> {
         require(userId.isNotBlank()) { "User ID cannot be empty" }
         val snapshot = bookingModuleCollection
             .whereEqualTo("userId", userId)
-            .orderBy("createdAt", Query.Direction.DESCENDING)
+            .orderBy("scheduledAt", Query.Direction.DESCENDING)
             .get()
             .await()
-        snapshot.documents.mapNotNull { doc ->
+        return snapshot.documents.mapNotNull { doc ->
             doc.toObject(BookingModel::class.java)?.copy(id = doc.id)
         }
     }
 
-    suspend fun getBookingsForTukang(tukangId: String): Result<List<BookingModel>> = runCatching {
+    suspend fun getBookingsByTukang(tukangId: String): List<BookingModel> {
         require(tukangId.isNotBlank()) { "Tukang ID cannot be empty" }
         val snapshot = bookingModuleCollection
             .whereEqualTo("tukangId", tukangId)
-            .orderBy("createdAt", Query.Direction.DESCENDING)
+            .orderBy("scheduledAt", Query.Direction.DESCENDING)
             .get()
             .await()
-        snapshot.documents.mapNotNull { doc ->
+        return snapshot.documents.mapNotNull { doc ->
             doc.toObject(BookingModel::class.java)?.copy(id = doc.id)
         }
     }
 
-    suspend fun updateBookingStatus(bookingId: String, status: String, actorId: String): Result<Unit> = runCatching {
-        require(bookingId.isNotBlank()) { "Booking ID cannot be empty" }
-        bookingModuleCollection.document(bookingId)
-            .update(mapOf("status" to status, "updatedAt" to System.currentTimeMillis()))
-            .await()
-        logBookingAudit(bookingId, status, actorId)
-    }
-
-    private suspend fun logBookingAudit(bookingId: String, status: String, actorId: String) {
+    private suspend fun logBookingAudit(bookingId: String, status: String, actorId: String?) {
         val logEntry = mapOf(
             "bookingId" to bookingId,
             "status" to status,
