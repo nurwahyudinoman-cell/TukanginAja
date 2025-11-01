@@ -1,0 +1,25 @@
+name: TukanginAja Monitoring Audit
+
+on:
+  schedule:
+    - cron: "0 2 * * *"
+  workflow_dispatch:
+
+jobs:
+  monitor:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Run Monitoring Script
+        run: |
+          kotlinc infra/monitoring/dashboard_monitor.kt -include-runtime -d monitor.jar
+          java -jar monitor.jar
+
+      - name: Upload Monitoring Report
+        uses: actions/upload-artifact@v3
+        with:
+          name: daily-monitoring-report
+          path: reports/release-monitoring-*.json
+
