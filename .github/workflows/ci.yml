@@ -1,0 +1,107 @@
+name: CI
+
+on:
+  push:
+    branches:
+      - main
+      - develop
+  pull_request:
+    branches:
+      - main
+      - develop
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup Java (Gradle compatible)
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '17'
+          cache: 'gradle'
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+          cache: 'npm'
+
+      - name: Grant execute permission for gradlew
+        run: chmod +x ./gradlew
+
+      - name: Cache Gradle dependencies
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.gradle/caches
+            ~/.gradle/wrapper
+          key: ${{ runner.os }}-gradle-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties') }}
+          restore-keys: |
+            ${{ runner.os }}-gradle-
+
+      - name: Clean build
+        id: clean-build
+        run: ./gradlew clean build
+        continue-on-error: true
+
+      - name: Auto-repair if build failed
+        if: steps.clean-build.outcome == 'failure'
+        run: |
+          echo "Build failed. Running auto-repair script..."
+          chmod +x ./scripts/ci-auto-repair.sh
+          ./scripts/ci-auto-repair.sh || true
+
+      - name: Rebuild after auto-repair
+        if: steps.clean-build.outcome == 'failure'
+        run: |
+          echo "Re-running build after auto-repair attempt..."
+          ./gradlew clean build
+          continue-on-error: true
+
+      - name: Build status check
+        if: always()
+        run: |
+          if [ "${{ steps.clean-build.outcome }}" == "failure" ] && [ "${{ steps.rebuild-after-auto-repair.outcome }}" == "failure" ]; then
+            echo "Build failed even after auto-repair attempt"
+            exit 1
+          fi
+
+      - name: Run tests
+        run: ./gradlew test
+
+      - name: Run lint
+        run: ./gradlew lint
+
+      - name: Upload test results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-results
+          path: |
+            app/build/test-results/
+            app/build/reports/tests/
+
+      - name: Upload lint results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: lint-results
+          path: app/build/reports/lint-results*
+
+      - name: Upload build artifacts
+        if: success()
+        uses: actions/upload-artifact@v4
+        with:
+          name: build-artifacts
+          path: |
+            app/build/outputs/
+          retention-days: 7
+
