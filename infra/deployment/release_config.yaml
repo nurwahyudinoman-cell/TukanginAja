@@ -1,0 +1,10 @@
+release:
+  track: internal
+  service_account_json: /infra/keys/playstore-service.json
+  artifact: app/build/outputs/bundle/release/app-release.aab
+  rollout: 100%
+  notify_team: true
+  logs:
+    build: logs/build-release-$(date +%Y%m%d).log
+    upload: logs/upload-$(date +%Y%m%d).log
+

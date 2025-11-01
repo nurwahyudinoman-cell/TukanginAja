@@ -1,0 +1,37 @@
+name: TukanginAja Release Pipeline
+
+on:
+  push:
+    branches: [ feature/modules-phase3 ]
+  workflow_dispatch:
+
+jobs:
+  build-release:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Setup JDK
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "17"
+
+      - name: Build Release
+        run: ./gradlew clean bundleRelease
+
+      - name: Verify Signing Config
+        run: ./gradlew verifyReleaseResources
+
+      - name: Upload Release Artifact
+        uses: actions/upload-artifact@v3
+        with:
+          name: TukanginAja-Release
+          path: app/build/outputs/bundle/release/app-release.aab
+
+      - name: Generate Build Report
+        run: |
+          mkdir -p reports
+          echo "Release build completed successfully" > reports/release-summary.txt
+
