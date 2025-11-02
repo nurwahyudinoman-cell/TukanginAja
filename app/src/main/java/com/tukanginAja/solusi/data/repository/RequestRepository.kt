@@ -152,5 +152,45 @@ class RequestRepository @Inject constructor(
             listenerRegistration.remove()
         }
     }
+    
+    /**
+     * Observe all requests (for admin - real-time updates)
+     * Returns a Flow that emits List<ServiceRequest> whenever requests change
+     */
+    fun observeAllRequests(): Flow<List<ServiceRequest>> = callbackFlow {
+        val listenerRegistration: ListenerRegistration = requestCollection
+            .orderBy("timestamp", com.google.firebase.firestore.Query.Direction.DESCENDING)
+            .addSnapshotListener { snapshot, error ->
+                if (error != null) {
+                    trySend(emptyList())
+                    return@addSnapshotListener
+                }
+                
+                if (snapshot != null && !snapshot.isEmpty) {
+                    val requests = snapshot.documents.mapNotNull { doc ->
+                        try {
+                            ServiceRequest(
+                                id = doc.getString("id") ?: doc.id,
+                                customerId = doc.getString("customerId") ?: "",
+                                tukangId = doc.getString("tukangId") ?: "",
+                                tukangName = doc.getString("tukangName") ?: "",
+                                status = doc.getString("status") ?: "pending",
+                                timestamp = doc.getLong("timestamp") ?: 0L,
+                                description = doc.getString("description") ?: ""
+                            )
+                        } catch (e: Exception) {
+                            null
+                        }
+                    }
+                    trySend(requests)
+                } else {
+                    trySend(emptyList())
+                }
+            }
+        
+        awaitClose {
+            listenerRegistration.remove()
+        }
+    }
 }
 

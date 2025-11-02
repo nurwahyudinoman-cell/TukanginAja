@@ -54,6 +54,8 @@ class TukangDashboardViewModel @Inject constructor(
                         order.status != "completed" && order.status != "declined"
                     }.sortedByDescending { it.timestamp }
                     
+                    Log.d("TukangDashboardViewModel", "📡 [Realtime-Tukang] ${activeOrders.size} data termuat")
+                    
                     _uiState.update {
                         it.copy(
                             activeOrders = activeOrders,

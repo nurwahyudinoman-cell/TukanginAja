@@ -20,7 +20,11 @@ import com.google.firebase.messaging.FirebaseMessaging
 import com.tukanginAja.solusi.data.repository.AuthRepository
 import com.tukanginAja.solusi.domain.usecase.auth.SignOutUseCase
 import com.tukanginAja.solusi.ui.components.BottomNavigationBar
+import com.tukanginAja.solusi.ui.components.UserBottomBar
+import com.tukanginAja.solusi.ui.components.TukangBottomBar
+import com.tukanginAja.solusi.ui.components.AdminBottomBar
 import com.tukanginAja.solusi.ui.navigation.NavGraph
+import com.tukanginAja.solusi.ui.navigation.MainNavGraph
 import com.tukanginAja.solusi.ui.navigation.Screen
 import com.tukanginAja.solusi.ui.theme.TukanginAjaTheme
 import com.tukanginAja.solusi.utils.Constants
@@ -76,7 +80,7 @@ class MainActivity : ComponentActivity() {
                 val notificationChatId = remember { intent.getStringExtra("chatId") }
                 val notificationNavigateTo = remember { intent.getStringExtra("navigateTo") }
                 
-                // Handle splash screen navigation based on auth state
+                // Handle splash screen navigation based on auth state and role
                 LaunchedEffect(isLoggedIn, notificationChatId) {
                     delay(Constants.SPLASH_DELAY) // Show splash for 2 seconds
                     if (!isLoggedIn) {
@@ -95,43 +99,118 @@ class MainActivity : ComponentActivity() {
                                 launchSingleTop = true
                             }
                         } else {
-                            if (currentRoute != Screen.Home.route && currentRoute != Screen.Orders.route && 
+                            // Get user role from SharedPreferences and navigate to appropriate dashboard
+                            val userRole = com.tukanginAja.solusi.utils.RolePreferencesHelper.getUserRole(this@MainActivity)
+                            val destination = when (userRole) {
+                                "user" -> Screen.UserDashboard.route
+                                "tukang" -> {
+                                    // Navigate to tukang dashboard - use user email/uid as tukangId
+                                    val tukangId = authRepository.currentUser?.uid ?: "tukang_001"
+                                    val tukangName = authRepository.currentUser?.email?.split("@")?.firstOrNull() ?: "Tukang User"
+                                    Screen.TukangDashboard.createRoute(tukangId, tukangName)
+                                }
+                                "admin" -> Screen.AdminDashboard.route
+                                else -> Screen.Home.route // Fallback to Home if role not found
+                            }
+                            
+                            // Only navigate if we're not already on the correct dashboard
+                            val roleDashboards = listOf(
+                                Screen.UserDashboard.route,
+                                Screen.AdminDashboard.route,
+                                Screen.Home.route
+                            )
+                            val isOnRoleDashboard = roleDashboards.contains(currentRoute) || 
+                                currentRoute?.startsWith("tukang_dashboard/") == true
+                            
+                            if (!isOnRoleDashboard && currentRoute != Screen.Orders.route && 
                                 currentRoute != Screen.Chat.route && currentRoute != Screen.Profile.route && 
                                 currentRoute != Screen.More.route) {
-                                navController.navigate(Screen.Home.route) {
+                                navController.navigate(destination) {
                                     popUpTo(Screen.Splash.route) { inclusive = true }
+                                    launchSingleTop = true
                                 }
                             }
                         }
                     }
                 }
                 
+                // Get user role - make it reactive
+                val userRole = if (isLoggedIn) {
+                    com.tukanginAja.solusi.utils.RolePreferencesHelper.getUserRole(this@MainActivity)
+                } else {
+                    null
+                }
+                
                 Scaffold(
                     modifier = Modifier.fillMaxSize(),
                     bottomBar = {
-                        if (isLoggedIn && currentRoute in listOf(
-                                Screen.Home.route,
-                                Screen.Orders.route,
-                                Screen.Chat.route,
-                                Screen.Profile.route,
-                                Screen.More.route
-                            )
-                        ) {
-                            BottomNavigationBar(navController = navController)
+                        // Show role-specific bottom navigation
+                        if (isLoggedIn && userRole != null) {
+                            when (userRole) {
+                                "user" -> {
+                                    if (currentRoute in listOf(
+                                            Screen.Home.route,
+                                            Screen.UserDashboard.route,
+                                            "user_home",
+                                            Screen.Orders.route,
+                                            "user_orders",
+                                            Screen.Profile.route,
+                                            "user_profile",
+                                            Screen.TukangList.route,
+                                            Screen.Request.route.split("/")[0],
+                                            Screen.Chat.route.split("/")[0]
+                                        )
+                                    ) {
+                                        UserBottomBar(navController = navController, role = userRole)
+                                    }
+                                }
+                                "tukang" -> {
+                                    if (currentRoute?.startsWith("tukang") == true || 
+                                        currentRoute?.startsWith("route") == true ||
+                                        currentRoute?.startsWith("chat") == true) {
+                                        TukangBottomBar(navController = navController, role = userRole)
+                                    }
+                                }
+                                "admin" -> {
+                                    if (currentRoute?.startsWith("admin") == true) {
+                                        AdminBottomBar(navController = navController, role = userRole)
+                                    }
+                                }
+                            }
                         }
                     }
                 ) { innerPadding ->
-                    NavGraph(
-                        navController = navController,
-                        startDestination = Screen.Splash.route,
-                        onSignOut = {
-                            CoroutineScope(Dispatchers.Main).launch {
-                                signOutUseCase()
-                            }
-                        },
-                        authRepository = authRepository,
-                        modifier = Modifier.padding(innerPadding)
-                    )
+                    if (isLoggedIn && userRole != null) {
+                        // Use role-based navigation for logged-in users
+                        MainNavGraph(
+                            navController = navController,
+                            role = userRole,
+                            onSignOut = {
+                                CoroutineScope(Dispatchers.Main).launch {
+                                    // Clear user role from SharedPreferences on sign out
+                                    com.tukanginAja.solusi.utils.RolePreferencesHelper.clearUserRole(this@MainActivity)
+                                    signOutUseCase()
+                                }
+                            },
+                            authRepository = authRepository,
+                            modifier = Modifier.padding(innerPadding)
+                        )
+                    } else {
+                        // Use default navigation for auth screens
+                        NavGraph(
+                            navController = navController,
+                            startDestination = Screen.Splash.route,
+                            onSignOut = {
+                                CoroutineScope(Dispatchers.Main).launch {
+                                    // Clear user role from SharedPreferences on sign out
+                                    com.tukanginAja.solusi.utils.RolePreferencesHelper.clearUserRole(this@MainActivity)
+                                    signOutUseCase()
+                                }
+                            },
+                            authRepository = authRepository,
+                            modifier = Modifier.padding(innerPadding)
+                        )
+                    }
                 }
             }
         }

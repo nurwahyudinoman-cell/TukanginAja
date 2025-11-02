@@ -6,6 +6,7 @@ data class User(
     val name: String = "",
     val phoneNumber: String = "",
     val profileImageUrl: String = "",
+    val role: String = "user", // Default role: user, tukang, or admin
     val createdAt: Long = System.currentTimeMillis()
 )
 

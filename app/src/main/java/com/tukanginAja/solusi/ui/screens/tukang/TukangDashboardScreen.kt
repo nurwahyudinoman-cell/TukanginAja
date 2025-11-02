@@ -3,6 +3,7 @@ package com.tukanginAja.solusi.ui.screens.tukang
 import android.content.Context
 import android.content.Intent
 import android.os.Build
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -10,9 +11,11 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import com.tukanginAja.solusi.utils.DateFormatter
 import androidx.core.content.ContextCompat
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
@@ -39,6 +42,8 @@ fun TukangDashboardScreen(
     val scope = rememberCoroutineScope()
     val snackbarHostState = remember { SnackbarHostState() }
     
+    val isRefreshing = uiState.isLoading
+    
     // Load active orders when screen is displayed
     LaunchedEffect(tukangId) {
         viewModel.loadActiveOrders(tukangId)
@@ -60,7 +65,7 @@ fun TukangDashboardScreen(
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("Dashboard Tukang") },
+                title = { Text("🔧 Tukang Dashboard") },
                 colors = TopAppBarDefaults.topAppBarColors(
                     containerColor = MaterialTheme.colorScheme.primaryContainer,
                     titleContentColor = MaterialTheme.colorScheme.onPrimaryContainer
@@ -69,67 +74,68 @@ fun TukangDashboardScreen(
         },
         snackbarHost = { SnackbarHost(hostState = snackbarHostState) }
     ) { paddingValues ->
-        if (uiState.isLoading && uiState.activeOrders.isEmpty()) {
-            Box(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(paddingValues),
-                contentAlignment = Alignment.Center
-            ) {
-                CircularProgressIndicator()
-            }
-        } else if (uiState.activeOrders.isEmpty()) {
-            Box(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(paddingValues),
-                contentAlignment = Alignment.Center
-            ) {
-                Column(
-                    horizontalAlignment = Alignment.CenterHorizontally,
-                    modifier = Modifier.padding(16.dp),
-                    verticalArrangement = Arrangement.spacedBy(8.dp)
-                ) {
-                    Text(
-                        text = "📋",
-                        style = MaterialTheme.typography.displayLarge
-                    )
-                    Text(
-                        text = "Tidak ada order aktif",
-                        style = MaterialTheme.typography.titleLarge,
-                        textAlign = TextAlign.Center
-                    )
-                    Text(
-                        text = "Saat ini tidak ada order yang perlu ditangani",
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        textAlign = TextAlign.Center
-                    )
+        Box(modifier = Modifier.fillMaxSize().padding(paddingValues)) {
+            when {
+                uiState.isLoading && uiState.activeOrders.isEmpty() -> {
+                    Box(
+                        modifier = Modifier.fillMaxSize(),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        CircularProgressIndicator()
+                    }
                 }
-            }
-        } else {
-            LazyColumn(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(paddingValues),
-                contentPadding = PaddingValues(16.dp),
-                verticalArrangement = Arrangement.spacedBy(12.dp)
-            ) {
-                items(uiState.activeOrders) { order ->
-                    ActiveOrderCard(
-                        order = order,
-                        navController = navController,
-                        onCompleteOrder = { routeData, startLoc, endLoc ->
-                            viewModel.completeOrder(order, routeData, startLoc, endLoc)
-                        },
-                        onStartTracking = {
-                            // TAHAP 16: Pass orderId saat start tracking
-                            startBackgroundTracking(context, tukangId, tukangName, order.id)
-                        },
-                        onStopTracking = {
-                            stopBackgroundTracking(context)
+                uiState.activeOrders.isEmpty() -> {
+                    Box(
+                        modifier = Modifier.fillMaxSize(),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Column(
+                            horizontalAlignment = Alignment.CenterHorizontally,
+                            modifier = Modifier.padding(16.dp),
+                            verticalArrangement = Arrangement.spacedBy(8.dp)
+                        ) {
+                            Text(
+                                text = "🔧",
+                                style = MaterialTheme.typography.displayLarge
+                            )
+                            Spacer(modifier = Modifier.height(8.dp))
+                            Text(
+                                text = "Belum ada order untukmu.",
+                                style = MaterialTheme.typography.headlineSmall,
+                                textAlign = TextAlign.Center
+                            )
+                            Spacer(modifier = Modifier.height(8.dp))
+                            Text(
+                                text = "Order akan muncul di sini ketika ada pelanggan membutuhkan layananmu.",
+                                style = MaterialTheme.typography.bodyMedium,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                textAlign = TextAlign.Center
+                            )
                         }
-                    )
+                    }
+                }
+                else -> {
+                    LazyColumn(
+                        contentPadding = PaddingValues(16.dp),
+                        verticalArrangement = Arrangement.spacedBy(12.dp)
+                    ) {
+                        items(uiState.activeOrders) { order ->
+                            ActiveOrderCard(
+                                order = order,
+                                navController = navController,
+                                onCompleteOrder = { routeData, startLoc, endLoc ->
+                                    viewModel.completeOrder(order, routeData, startLoc, endLoc)
+                                },
+                                onStartTracking = {
+                                    // TAHAP 16: Pass orderId saat start tracking
+                                    startBackgroundTracking(context, tukangId, tukangName, order.id)
+                                },
+                                onStopTracking = {
+                                    stopBackgroundTracking(context)
+                                }
+                            )
+                        }
+                    }
                 }
             }
         }
@@ -174,30 +180,8 @@ private fun ActiveOrderCard(
                     )
                 }
                 
-                // Status badge
-                Surface(
-                    color = when (order.status) {
-                        "accepted" -> MaterialTheme.colorScheme.primaryContainer
-                        "in_progress" -> MaterialTheme.colorScheme.secondaryContainer
-                        else -> MaterialTheme.colorScheme.tertiaryContainer
-                    },
-                    shape = MaterialTheme.shapes.small
-                ) {
-                    Text(
-                        text = when (order.status) {
-                            "accepted" -> "✅ Diterima"
-                            "in_progress" -> "🚗 Dalam Perjalanan"
-                            else -> order.status
-                        },
-                        style = MaterialTheme.typography.labelSmall,
-                        color = when (order.status) {
-                            "accepted" -> MaterialTheme.colorScheme.onPrimaryContainer
-                            "in_progress" -> MaterialTheme.colorScheme.onSecondaryContainer
-                            else -> MaterialTheme.colorScheme.onTertiaryContainer
-                        },
-                        modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp)
-                    )
-                }
+                // Status badge with improved colors
+                StatusBadge(status = order.status)
             }
             
             HorizontalDivider()
@@ -216,7 +200,7 @@ private fun ActiveOrderCard(
             // Timestamp
             if (order.timestamp > 0) {
                 Text(
-                    text = "🕒 ${formatTimestamp(order.timestamp)}",
+                    text = "🕒 ${DateFormatter.formatTimestamp(order.timestamp)}",
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
@@ -342,16 +326,27 @@ private fun stopBackgroundTracking(context: Context) {
     context.stopService(intent)
 }
 
-private fun formatTimestamp(timestamp: Long): String {
-    val seconds = timestamp / 1000
-    val minutes = seconds / 60
-    val hours = minutes / 60
-    val days = hours / 24
+@Composable
+private fun StatusBadge(status: String) {
+    val (statusText, statusColor) = when (status.lowercase()) {
+        "pending", "waiting" -> "⏳ Menunggu" to Color(0xFFFFB300) // Yellow
+        "accepted" -> "✅ Diterima" to Color(0xFF4CAF50) // Green
+        "in_progress", "inprogress" -> "🚗 Sedang Dikerjakan" to Color(0xFF2196F3) // Blue
+        "completed", "done" -> "✅ Selesai" to Color(0xFF4CAF50) // Green
+        "declined" -> "❌ Ditolak" to Color(0xFFF44336) // Red
+        else -> status to MaterialTheme.colorScheme.surfaceVariant
+    }
     
-    return when {
-        days > 0 -> "$days hari yang lalu"
-        hours > 0 -> "$hours jam yang lalu"
-        minutes > 0 -> "$minutes menit yang lalu"
-        else -> "Baru saja"
+    Surface(
+        color = statusColor.copy(alpha = 0.15f),
+        shape = MaterialTheme.shapes.small,
+        border = BorderStroke(1.dp, statusColor.copy(alpha = 0.3f))
+    ) {
+        Text(
+            text = statusText,
+            style = MaterialTheme.typography.labelSmall,
+            color = statusColor,
+            modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp)
+        )
     }
 }

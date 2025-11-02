@@ -53,6 +53,34 @@ class FirestoreHelper @Inject constructor(
         val snapshot = usersCollection.document(userId).get().await()
         if (snapshot.exists()) snapshot.toObject(User::class.java) else null
     }
+
+    suspend fun getUserByEmail(email: String): Result<User?> = runCatching {
+        require(email.isNotBlank()) { "Email cannot be empty" }
+        val snapshot = usersCollection
+            .whereEqualTo("email", email)
+            .limit(1)
+            .get()
+            .await()
+        if (!snapshot.isEmpty) {
+            val doc = snapshot.documents.first()
+            doc.toObject(User::class.java)?.copy(id = doc.id)
+        } else {
+            null
+        }
+    }
+
+    suspend fun getUserRole(email: String): Result<String?> = runCatching {
+        val userResult = getUserByEmail(email)
+        userResult.getOrNull()?.role  // Don't default to "user" - let AuthViewModel handle null
+    }
+    
+    /**
+     * Get user role by UID (recommended method - uses users/{uid} path)
+     */
+    suspend fun getUserRoleByUid(uid: String): Result<String?> = runCatching {
+        val userResult = getUser(uid)
+        userResult.getOrNull()?.role  // Don't default to "user" - let AuthViewModel handle null
+    }
     // endregion
 
     // region Tukang CRUD

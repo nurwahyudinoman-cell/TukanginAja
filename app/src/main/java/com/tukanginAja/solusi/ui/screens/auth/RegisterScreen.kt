@@ -11,7 +11,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 
 @Composable
 fun RegisterScreen(
-    onRegisterSuccess: () -> Unit,
+    onRegisterSuccess: (String?) -> Unit,
     onNavigateToLogin: () -> Unit,
     viewModel: AuthViewModel = hiltViewModel()
 ) {
@@ -21,10 +21,11 @@ fun RegisterScreen(
     var passwordMismatchError by remember { mutableStateOf(false) }
     
     val uiState by viewModel.uiState.collectAsState()
+    val userRole by viewModel.userRole.collectAsState()
     
     LaunchedEffect(uiState) {
         if (uiState is AuthUiState.Success) {
-            onRegisterSuccess()
+            onRegisterSuccess((uiState as AuthUiState.Success).role)
         }
     }
     

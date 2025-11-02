@@ -1,0 +1,195 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    
+    // Helper function to get user role
+    function getUserRole() {
+      return get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role;
+    }
+    
+    // Helper function to check if user is admin
+    function isAdmin() {
+      return request.auth != null && getUserRole() == "admin";
+    }
+    
+    // Users collection
+    match /users/{userId} {
+      // Users can read their own profile
+      allow read: if request.auth != null && request.auth.uid == userId;
+      // Users can update their own profile
+      allow update: if request.auth != null && request.auth.uid == userId;
+      // Only admins can create users (or allow self-registration with default role)
+      allow create: if request.auth != null;
+      // Only admins can delete users
+      allow delete: if isAdmin();
+    }
+    
+    // Orders collection
+    match /orders/{orderId} {
+      // Read: Users can read their own orders, tukang can read assigned orders, admin can read all
+      allow read: if request.auth != null && (
+        resource.data.userId == request.auth.uid ||
+        resource.data.tukangId == request.auth.uid ||
+        isAdmin()
+      );
+      
+      // Create: Only authenticated users with role "user" can create orders
+      allow create: if request.auth != null && 
+        getUserRole() == "user" &&
+        request.resource.data.userId == request.auth.uid;
+      
+      // Update: Owner (user), assigned tukang, or admin can update
+      // Additional validations for status transitions
+      allow update: if request.auth != null && (
+        // User can cancel their own order
+        (request.auth.uid == resource.data.userId && 
+         request.resource.data.status == "Dibatalkan") ||
+        // Tukang can accept/update orders assigned to them
+        (request.auth.uid == resource.data.tukangId) ||
+        // Allow tukang to accept if order is in requested state (atomic accept)
+        (resource.data.status in ["requested", "Menunggu"] && 
+         request.resource.data.status == "Diterima" &&
+         request.resource.data.tukangId == request.auth.uid &&
+         getUserRole() == "tukang") ||
+        // Admin can update any order
+        isAdmin()
+      );
+      
+      // Delete: Only admin can delete orders
+      allow delete: if isAdmin();
+      
+      // Messages subcollection for order chat
+      match /messages/{messageId} {
+        allow read: if request.auth != null && (
+          request.auth.uid == resource.data.senderId ||
+          request.auth.uid == resource.data.receiverId ||
+          isAdmin()
+        );
+        allow create: if request.auth != null && 
+          request.resource.data.senderId == request.auth.uid;
+        allow update, delete: if isAdmin();
+      }
+    }
+    
+    // Service requests collection (existing)
+    match /service_requests/{requestId} {
+      allow read: if request.auth != null && (
+        resource.data.customerId == request.auth.uid ||
+        resource.data.tukangId == request.auth.uid ||
+        isAdmin()
+      );
+      allow create: if request.auth != null;
+      allow update: if request.auth != null && (
+        resource.data.customerId == request.auth.uid ||
+        resource.data.tukangId == request.auth.uid ||
+        isAdmin()
+      );
+      allow delete: if isAdmin();
+    }
+    
+    // Tukang locations collection
+    match /tukang_locations/{locationId} {
+      allow read: if request.auth != null;
+      allow write: if request.auth != null && (
+        request.auth.uid == locationId ||
+        getUserRole() == "tukang" ||
+        isAdmin()
+      );
+    }
+    
+    // Chats collection
+    match /chats/{chatId} {
+      allow read: if request.auth != null && 
+        request.auth.uid in resource.data.participants;
+      allow create: if request.auth != null;
+      allow update: if request.auth != null && 
+        request.auth.uid in resource.data.participants;
+      allow delete: if isAdmin();
+      
+      // Messages subcollection
+      match /messages/{messageId} {
+        allow read: if request.auth != null;
+        allow create: if request.auth != null && 
+          request.resource.data.senderId == request.auth.uid;
+        allow update, delete: if isAdmin();
+      }
+    }
+    
+    // Route history collection
+    match /route_history/{routeId} {
+      allow read: if request.auth != null && (
+        resource.data.tukangId == request.auth.uid ||
+        resource.data.customerId == request.auth.uid ||
+        isAdmin()
+      );
+      allow create: if request.auth != null;
+      allow update, delete: if isAdmin();
+    }
+    
+    // Tukang collection (tukang/{uid})
+    match /tukang/{tukangId} {
+      // Read: Tukang can read their own profile, users can read for booking, admin can read all
+      allow read: if request.auth != null && (
+        request.auth.uid == tukangId ||
+        getUserRole() == "user" ||
+        isAdmin()
+      );
+      
+      // Create: Only via Cloud Functions (or admin)
+      allow create: if isAdmin() || 
+        (request.auth != null && request.auth.uid == tukangId && getUserRole() == "tukang");
+      
+      // Update: Tukang can update their own profile, admin can update any
+      allow update: if request.auth != null && (
+        request.auth.uid == tukangId ||
+        isAdmin()
+      );
+      
+      // Delete: Only admin can delete tukang profiles
+      allow delete: if isAdmin();
+    }
+    
+    // Admin collection (admin/{uid}) - if needed in future
+    match /admin/{adminId} {
+      // Read: Admin can read their own profile, only admins can read admin data
+      allow read: if isAdmin() && (
+        request.auth.uid == adminId ||
+        isAdmin()
+      );
+      
+      // Write: Only admins can create/update admin documents
+      allow write: if isAdmin();
+    }
+    
+    // System logs collection (read-only for admins, write-only for Cloud Functions)
+    match /system_logs/{logId} {
+      allow read: if isAdmin();
+      // Write allowed only via Cloud Functions (no client write)
+      allow write: if false; // Only Cloud Functions can write
+    }
+    
+    // Ratings collection
+    match /ratings/{ratingId} {
+      allow read: if request.auth != null;
+      allow create: if request.auth != null && 
+        request.resource.data.userId == request.auth.uid;
+      allow update, delete: if isAdmin();
+    }
+    
+    // Transactions collection
+    match /transactions/{transactionId} {
+      allow read: if request.auth != null && (
+        resource.data.userId == request.auth.uid ||
+        resource.data.tukangId == request.auth.uid ||
+        isAdmin()
+      );
+      allow create: if request.auth != null;
+      allow update: if request.auth != null && (
+        request.auth.uid == resource.data.userId ||
+        isAdmin()
+      );
+      allow delete: if isAdmin();
+    }
+  }
+}
+
