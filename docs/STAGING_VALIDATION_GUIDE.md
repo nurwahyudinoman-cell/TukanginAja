@@ -1,224 +1,280 @@
-# 📋 Staging Deployment Validation Guide
+# 🚀 Staging Deployment Validation Guide
 
-## 🎯 Tujuan
+## 📋 Overview
 
-Memastikan semua komponen sistem ATM TukanginAja berfungsi dengan baik di Staging Environment setelah deployment melalui CI/CD pipeline.
+Guide ini menjelaskan langkah-langkah untuk melakukan validasi deployment Firebase Functions ke staging environment.
 
-## ✅ Checklist Validasi
+## ⚙️ Prerequisites
 
-### 1️⃣ Pre-Deployment Setup
+### 1. Setup GitHub Secrets
 
-- [ ] GitHub Secrets sudah diatur (`FIREBASE_DEPLOY_TOKEN`)
-- [ ] Firebase project `tukanginaja-staging` sudah dibuat
-- [ ] Firebase CLI terinstall dan user sudah login
-- [ ] Repository sudah di-push ke `main` branch
+Sebelum menjalankan workflow, pastikan secret berikut sudah diatur di GitHub:
 
-### 2️⃣ Trigger Deployment
+**Lokasi:** `Settings → Secrets and variables → Actions`
 
-**Cara Manual Trigger:**
+**Secret yang diperlukan:**
+- `FIREBASE_DEPLOY_TOKEN`: Token dari `firebase login:ci`
+  ```bash
+  firebase login:ci
+  # Copy token yang dihasilkan dan paste sebagai secret value
+  ```
 
-1. Masuk ke GitHub Repository: `https://github.com/nurwahyudinoman-cell/TukanginAja`
-2. Buka tab **Actions**
-3. Pilih workflow: **🚀 Deploy TukanginAja Staging**
-4. Klik **Run workflow** (dropdown di kanan)
-5. Pilih branch: `main`
-6. Klik **Run workflow** (button hijau)
+### 2. Setup Firebase Project
 
-**Automatic Trigger:**
+Pastikan project `tukanginaja-staging` sudah dibuat di Firebase Console:
+- [Firebase Console](https://console.firebase.google.com/)
+- Create new project dengan ID: `tukanginaja-staging`
 
-- Workflow akan otomatis berjalan saat ada push ke `main` branch
-- Atau saat ada pull request ke `main` branch
-
-### 3️⃣ Monitor Deployment
-
-**Di GitHub Actions:**
-
-1. Klik workflow run yang sedang berjalan
-2. Monitor setiap step:
-   - ✅ Checkout repository
-   - ✅ Setup Node.js & Java
-   - ✅ Install dependencies
-   - ✅ Run tests
-   - ✅ Build Android app
-   - ✅ Deploy Firebase Functions
-
-**Di Firebase Console:**
-
-1. Masuk ke [Firebase Console](https://console.firebase.google.com)
-2. Pilih project: `tukanginaja-staging`
-3. Buka: **Functions** → **Dashboard**
-4. Cek deployed functions dan statusnya
-
-### 4️⃣ Verifikasi Deployment
-
-**Jalankan Validation Script:**
+### 3. Install Dependencies
 
 ```bash
-# Berikan execute permission
-chmod +x scripts/validate_staging_deployment.sh
+# Install Firebase CLI globally
+npm install -g firebase-tools
 
-# Jalankan script
+# Login to Firebase
+firebase login
+```
+
+## 🔄 Workflow Execution
+
+### Manual Trigger (Recommended untuk Testing)
+
+1. Masuk ke GitHub Repository
+2. Klik tab **"Actions"**
+3. Pilih workflow **"🚀 Deploy TukanginAja Staging"**
+4. Klik **"Run workflow"** dropdown
+5. Pilih branch: `main`
+6. Klik **"Run workflow"**
+
+### Automatic Trigger
+
+Workflow akan otomatis berjalan ketika:
+- Push ke `main` branch
+- Pull request ke `main` branch
+
+## ✅ Validation Steps
+
+### Step 1: Run Validation Script
+
+```bash
+chmod +x scripts/validate_staging_deployment.sh
 ./scripts/validate_staging_deployment.sh
 ```
 
 Script akan:
-- ✅ Cek Firebase CLI installation
-- ✅ Cek Firebase authentication
+- ✅ Check Firebase authentication
 - ✅ List deployed functions
 - ✅ Check function logs
+- ✅ Validate project configuration
 - ✅ Generate validation report
 
-**Manual Verification:**
+### Step 2: Verify Functions Deployment
 
 ```bash
-# 1. List deployed functions
+# List all deployed functions
 firebase functions:list --project tukanginaja-staging
 
-# 2. Check recent logs
+# Expected output should include:
+# - onOrderStatusUpdate
+# - onNewMessage
+# - onNewRating
+# - onPaymentSuccess
+```
+
+### Step 3: Check Function Logs
+
+```bash
+# View recent logs
 firebase functions:log --project tukanginaja-staging --limit=50
 
-# 3. Check Firestore rules
-firebase deploy --only firestore:rules --project tukanginaja-staging --dry-run
+# Monitor logs in real-time
+firebase functions:log --project tukanginaja-staging --limit=100 | grep -i "error\|success"
 ```
 
-### 5️⃣ Test Functions
+### Step 4: Test Functions via Firestore Events
 
-**Note:** Cloud Functions yang dibuat adalah Firestore Triggers, bukan HTTP endpoints.
+Firestore trigger functions **tidak bisa di-test langsung via HTTP**. Mereka harus di-trigger oleh Firestore events.
 
-**Cara Test:**
+#### Test onOrderStatusUpdate
 
-1. **Test Order Status Update:**
-   ```javascript
-   // Di Firestore Console atau via Firebase SDK
-   // Update order status
-   db.collection('orders').doc('TEST_ORDER_ID').update({
-     status: 'Selesai'
-   });
-   // Function `onOrderStatusUpdate` akan otomatis trigger
-   ```
+1. Buka Firebase Console → Firestore
+2. Navigate ke collection `orders`
+3. Create atau update document dengan mengubah field `status`
+4. Function akan otomatis trigger
+5. Check logs untuk verify execution
 
-2. **Test New Message:**
-   ```javascript
-   // Create new message
-   db.collection('orders')
-     .doc('TEST_ORDER_ID')
-     .collection('messages')
-     .add({
-       senderId: 'TEST_USER',
-       receiverId: 'TEST_TUKANG',
-       message: 'Test message',
-       createdAt: Date.now()
-     });
-   // Function `onNewMessage` akan otomatis trigger
-   ```
+#### Test onNewMessage
 
-3. **Test New Rating:**
-   ```javascript
-   // Create new rating
-   db.collection('ratings').add({
-     orderId: 'TEST_ORDER_ID',
-     userId: 'TEST_USER',
-     tukangId: 'TEST_TUKANG',
-     score: 4.5,
-     comment: 'Test rating',
-     createdAt: Date.now()
-   });
-   // Function `onNewRating` akan otomatis trigger
-   ```
+1. Navigate ke `orders/{orderId}/messages`
+2. Create new message document
+3. Function akan otomatis trigger
+4. Check logs dan notifications
 
-4. **Test Payment Success:**
-   ```javascript
-   // Update transaction status
-   db.collection('transactions').doc('TEST_TX_ID').update({
-     status: 'SUCCESS'
-   });
-   // Function `onPaymentSuccess` akan otomatis trigger
-   ```
+#### Test onNewRating
 
-**Monitor Logs:**
+1. Navigate ke collection `ratings`
+2. Create new rating document
+3. Function akan update trust score
+4. Verify trust score di `tukang_locations`
 
+#### Test onPaymentSuccess
+
+1. Navigate ke collection `transactions`
+2. Update transaction status dari non-"SUCCESS" ke "SUCCESS"
+3. Function akan trigger
+4. Check logs dan notifications
+
+## 🧪 Manual Testing Guide
+
+### Testing Order Status Update
+
+```javascript
+// Di Firestore Console atau via Firebase Admin SDK
+// Update order status
+await admin.firestore()
+  .collection('orders')
+  .doc('TEST_ORDER_123')
+  .update({
+    status: 'Selesai',
+    updatedAt: admin.firestore.FieldValue.serverTimestamp()
+  });
+
+// Check logs
+firebase functions:log --project tukanginaja-staging --limit=10
+```
+
+### Testing New Rating
+
+```javascript
+// Create rating
+await admin.firestore()
+  .collection('ratings')
+  .add({
+    orderId: 'TEST_ORDER_123',
+    userId: 'TEST_USER',
+    tukangId: 'TEST_TUKANG',
+    score: 4.5,
+    comment: 'Test rating',
+    createdAt: admin.firestore.FieldValue.serverTimestamp()
+  });
+
+// Verify trust score updated
+const tukangDoc = await admin.firestore()
+  .collection('tukang_locations')
+  .doc('TEST_TUKANG')
+  .get();
+
+console.log('Trust Score:', tukangDoc.data().trustScore);
+```
+
+### Testing Payment Success
+
+```javascript
+// Update transaction status
+await admin.firestore()
+  .collection('transactions')
+  .doc('TEST_TX_123')
+  .update({
+    status: 'SUCCESS',
+    updatedAt: admin.firestore.FieldValue.serverTimestamp()
+  });
+
+// Check logs for notification sent
+```
+
+## 📊 Monitoring & Debugging
+
+### Firebase Console Monitoring
+
+1. **Functions Dashboard:**
+   - Firebase Console → Functions
+   - Check deployment status
+   - View execution count
+   - Monitor error rate
+
+2. **Logs Viewer:**
+   - Firebase Console → Functions → Logs
+   - Filter by function name
+   - Search for errors
+
+3. **Firestore Console:**
+   - Verify data changes
+   - Check document updates
+   - Monitor real-time updates
+
+### GitHub Actions Monitoring
+
+1. **Workflow Runs:**
+   - GitHub → Actions tab
+   - View workflow execution history
+   - Check build logs
+   - Monitor deployment status
+
+2. **Build Artifacts:**
+   - Check build summary
+   - Review test results
+   - Verify deployment success
+
+## ⚠️ Troubleshooting
+
+### Common Issues
+
+**1. Functions not deployed:**
 ```bash
-# Watch function logs in real-time
-firebase functions:log --project tukanginaja-staging --limit=100 --follow
+# Check if deployment completed
+firebase functions:list --project tukanginaja-staging
+
+# Re-deploy manually if needed
+firebase deploy --only functions --project tukanginaja-staging
 ```
 
-### 6️⃣ Verify System Logs
-
-Check `system_logs` collection di Firestore:
-
-1. Masuk ke Firebase Console
-2. Buka: **Firestore Database**
-3. Buka collection: `system_logs`
-4. Cek apakah events sudah tercatat:
-   - `OrderStatusChange`
-   - `NewMessage`
-   - `RatingAdded`
-   - `PaymentSuccess`
-
-### 7️⃣ Validation Report
-
-Setelah semua validasi:
-
+**2. Authentication errors:**
 ```bash
-# Script akan generate report
-cat staging_validation_report.txt
+# Re-authenticate
+firebase login --reauth
+
+# Check token
+firebase projects:list
 ```
 
-**Report akan berisi:**
-- ✅ Deployment status
-- ✅ Function listing
-- ✅ Recent logs
-- ✅ Errors/warnings (jika ada)
-- ✅ Recommendations
+**3. Missing secrets:**
+- Verify `FIREBASE_DEPLOY_TOKEN` is set in GitHub Secrets
+- Re-generate token if needed: `firebase login:ci`
 
-## 🔍 Troubleshooting
+**4. Function execution errors:**
+- Check logs: `firebase functions:log --project tukanginaja-staging`
+- Verify Firestore rules allow function access
+- Check function code for errors
 
-### Problem: Functions tidak ter-deploy
+## 📝 Validation Report
 
-**Solution:**
-1. Check GitHub Actions logs untuk error
-2. Verify `FIREBASE_DEPLOY_TOKEN` secret sudah benar
-3. Check Firebase project permissions
-4. Try manual deploy: `firebase deploy --only functions --project tukanginaja-staging`
+Setelah menjalankan validation script, file `staging_validation_report.txt` akan di-generate dengan:
+- ✅ Validation checklist
+- ✅ Functions status
+- ✅ Logs analysis
+- ✅ Next steps recommendations
 
-### Problem: Functions ter-deploy tapi tidak trigger
-
-**Solution:**
-1. Check Firestore rules - pastikan trigger collection readable
-2. Verify function code - pastikan trigger path benar
-3. Check function logs untuk errors
-4. Test dengan manual Firestore write
-
-### Problem: Notifications tidak terkirim
-
-**Solution:**
-1. Check FCM tokens di `users` collection
-2. Verify function logs untuk notification errors
-3. Test dengan valid user ID dan FCM token
-4. Check Firebase Cloud Messaging setup
-
-## 📊 Success Criteria
+## 🎯 Success Criteria
 
 Deployment dianggap berhasil jika:
 
-- ✅ All functions deployed tanpa error
-- ✅ Functions muncul di Firebase Console
-- ✅ Functions logs tidak ada critical errors
-- ✅ Test triggers berhasil (create test documents)
-- ✅ System logs collection terisi dengan events
-- ✅ Notifications terkirim (jika ada valid FCM tokens)
+- ✅ All functions deployed successfully
+- ✅ No errors in recent logs
+- ✅ Functions trigger on Firestore events
+- ✅ Trust score calculation works
+- ✅ Notifications are sent
+- ✅ Event logging works
 
-## 🚀 Next Steps
+## 📞 Support
 
-Setelah validasi berhasil:
-
-1. ✅ Update production deployment documentation
-2. ✅ Setup monitoring & alerting
-3. ✅ Schedule regular validation runs
-4. ✅ Prepare for production deployment
-5. ✅ Announce staging environment ready for beta testing
+Jika menemukan issues:
+1. Check GitHub Actions logs
+2. Review Firebase Functions logs
+3. Verify Firestore rules
+4. Check function permissions
+5. Contact development team
 
 ---
 
-**Status:** ✅ Staging Environment Ready for Beta Testing
-
+**Last Updated:** $(date)
+**Version:** 1.0.0
